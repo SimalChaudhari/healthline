@@ -1,0 +1,396 @@
+import React from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Pressable,
+  Platform,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import {
+  Target,
+  Moon,
+  Sparkles,
+  Info,
+  ChevronRight,
+  Scale,
+  Droplets,
+  Flame,
+  ScanLine,
+  Mic,
+  Compass,
+  Bell,
+  Shield,
+  Crown,
+} from 'lucide-react-native';
+import ScreenShell from '../components/ScreenShell';
+import { useTheme } from '../context/ThemeContext';
+import { useDiary } from '../context/DiaryContext';
+import { colors, themeColors } from '../config/colors';
+import { FONT, snPro } from '../config/fonts';
+
+const GOAL_LABEL = { lose: 'Lose weight', maintain: 'Maintain', gain: 'Gain muscle' };
+
+const cardShadow = Platform.select({
+  ios: {
+    shadowColor: '#0F172A',
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+  },
+  android: { elevation: 2 },
+  default: {},
+});
+
+export default function MoreScreen({ navigation }) {
+  const { isDark, toggleTheme } = useTheme();
+  const c = themeColors(isDark);
+  const { profile, goal, water, totals } = useDiary();
+
+  const goTab = (tab) => navigation.navigate(tab);
+  const goStack = (screen, params) => navigation.navigate(screen, params);
+
+  return (
+    <ScreenShell>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <Text style={[styles.kicker, { color: colors.primary, fontFamily: snPro('800') }]}>SETTINGS</Text>
+        <Text style={[styles.title, { color: c.text }]}>More</Text>
+        <Text style={[styles.sub, { color: c.muted }]}>
+          Profile, goals, theme, and app info. All local UI — no account API yet.
+        </Text>
+
+        <View style={[styles.profileCard, cardShadow, { borderColor: isDark ? c.border : 'rgba(0,112,224,0.14)' }]}>
+          <LinearGradient
+            colors={isDark ? ['#161616', '#121212'] : ['#FFFFFF', '#F0F7FF']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.profileInner}
+          >
+            <View style={styles.profileTop}>
+              <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+                <Text style={[styles.avatarText, { fontFamily: snPro('800') }]}>{profile.name.slice(0, 1)}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.name, { color: c.text, fontFamily: snPro('800') }]}>{profile.name}</Text>
+                <Text style={[styles.meta, { color: c.muted, fontFamily: snPro('500') }]}>
+                  {GOAL_LABEL[goal]} · {profile.calories} kcal goal
+                </Text>
+              </View>
+              <View style={[styles.streakBadge, { backgroundColor: isDark ? '#1C1C1E' : colors.primarySoft }]}>
+                <Flame size={14} color={colors.carbs} />
+                <Text style={[styles.streakText, { color: colors.carbs, fontFamily: snPro('700') }]}>6d</Text>
+              </View>
+            </View>
+
+            <View style={styles.statRow}>
+              <MiniStat icon={Scale} label="Weight" value={`${profile.weight} kg`} theme={c} isDark={isDark} />
+              <MiniStat icon={Target} label="Target" value={`${profile.goalWeight} kg`} theme={c} isDark={isDark} accent={colors.accent} />
+              <MiniStat icon={Droplets} label="Water" value={`${water}/${profile.waterGoal}`} theme={c} isDark={isDark} accent={colors.primary} />
+            </View>
+          </LinearGradient>
+        </View>
+
+        <View style={[styles.premiumCard, { backgroundColor: isDark ? '#1A2744' : colors.primarySoft, borderColor: isDark ? '#2A3A5C' : 'rgba(0,112,224,0.18)' }]}>
+          <View style={[styles.premiumIcon, { backgroundColor: isDark ? '#243B66' : '#FFFFFF' }]}>
+            <Crown size={18} color={colors.primary} />
+          </View>
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Text style={[styles.premiumTitle, { color: c.text, fontFamily: snPro('700') }]}>Healthline Plus</Text>
+            <Text style={[styles.premiumSub, { color: c.muted }]}>Advanced insights & meal plans — coming soon</Text>
+          </View>
+          <ChevronRight size={18} color={colors.primary} />
+        </View>
+
+        <SectionLabel label="Quick links" theme={c} />
+        <View style={styles.linkGrid}>
+          <QuickLink icon={Compass} label="Recipes" color={colors.primary} theme={c} isDark={isDark} onPress={() => goTab('Discover')} />
+          <QuickLink icon={ScanLine} label="Scan meal" color={colors.primary} theme={c} isDark={isDark} onPress={() => goStack('ScanFood', { meal: 'lunch' })} />
+          <QuickLink icon={Mic} label="Voice log" color={colors.aiPurple} theme={c} isDark={isDark} onPress={() => goStack('VoiceLog', { meal: 'snacks' })} />
+          <QuickLink icon={Flame} label="Progress" color={colors.exercise} theme={c} isDark={isDark} onPress={() => goTab('Progress')} />
+        </View>
+
+        <SectionLabel label="Goals & health" theme={c} />
+        <SettingsRow
+          icon={Target}
+          iconBg={colors.primarySoft}
+          title="Nutrition goals"
+          subtitle={`${profile.protein}g protein · ${profile.carbs}g carbs · ${profile.fat}g fat`}
+          theme={c}
+          isDark={isDark}
+        />
+        <SettingsRow
+          icon={Flame}
+          iconBg={`${colors.carbs}22`}
+          iconColor={colors.carbs}
+          title="Today's intake"
+          subtitle={`${totals.calories} kcal logged · ${Math.max(0, profile.calories - totals.calories)} left`}
+          theme={c}
+          isDark={isDark}
+          onPress={() => goTab('Diary')}
+        />
+
+        <SectionLabel label="Preferences" theme={c} />
+        <SettingsRow
+          icon={Moon}
+          iconBg={isDark ? '#1C1C1E' : colors.primarySoft}
+          title="Dark mode"
+          subtitle={isDark ? 'On — dark theme active' : 'Off — light theme active'}
+          theme={c}
+          isDark={isDark}
+          right={<ThemeSwitch value={isDark} onValueChange={toggleTheme} isDark={isDark} />}
+        />
+        <SettingsRow
+          icon={Bell}
+          iconBg={`${colors.protein}22`}
+          iconColor={colors.protein}
+          title="Reminders"
+          subtitle="Meal & water nudges — UI placeholder"
+          theme={c}
+          isDark={isDark}
+        />
+        <SettingsRow
+          icon={Sparkles}
+          iconBg={`${colors.aiPurple}22`}
+          iconColor={colors.aiPurple}
+          title="AI features"
+          subtitle="Meal scan + voice logging — model connects later"
+          theme={c}
+          isDark={isDark}
+          onPress={() => goStack('ScanFood', { meal: 'lunch' })}
+        />
+
+        <SectionLabel label="About" theme={c} />
+        <SettingsRow
+          icon={Shield}
+          iconBg={isDark ? '#1C1C1E' : c.chip}
+          title="Privacy"
+          subtitle="Local data only on this device"
+          theme={c}
+          isDark={isDark}
+        />
+        <SettingsRow
+          icon={Info}
+          iconBg={isDark ? '#1C1C1E' : c.chip}
+          title="About"
+          subtitle="Healthline Nutrition · Expo 54 UI template"
+          theme={c}
+          isDark={isDark}
+        />
+
+        <Text style={[styles.footer, { color: c.muted, fontFamily: snPro('500') }]}>
+          Version 1.0.0 · UI preview build
+        </Text>
+      </ScrollView>
+    </ScreenShell>
+  );
+}
+
+function SectionLabel({ label, theme }) {
+  return (
+    <Text style={[styles.section, { color: theme.muted, fontFamily: snPro('800') }]}>{label.toUpperCase()}</Text>
+  );
+}
+
+function MiniStat({ icon: Icon, label, value, theme, isDark, accent }) {
+  const tint = accent || colors.primary;
+  return (
+    <View style={[styles.miniStat, { backgroundColor: isDark ? '#1C1C1E' : 'rgba(255,255,255,0.72)', borderColor: theme.border }]}>
+      <Icon size={14} color={tint} />
+      <Text style={[styles.miniLbl, { color: theme.muted, fontFamily: snPro('600') }]}>{label}</Text>
+      <Text style={[styles.miniVal, { color: theme.text, fontFamily: snPro('800') }]}>{value}</Text>
+    </View>
+  );
+}
+
+function QuickLink({ icon: Icon, label, color, theme, isDark, onPress }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.quickLink,
+        cardShadow,
+        {
+          backgroundColor: theme.cardBg,
+          borderColor: theme.border,
+          opacity: pressed ? 0.88 : 1,
+        },
+      ]}
+    >
+      <View style={[styles.quickIcon, { backgroundColor: isDark ? '#1C1C1E' : `${color}18` }]}>
+        <Icon size={18} color={color} />
+      </View>
+      <Text style={[styles.quickLbl, { color: theme.text, fontFamily: snPro('600') }]}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function ThemeSwitch({ value, onValueChange, isDark }) {
+  return (
+    <Switch
+      value={value}
+      onValueChange={onValueChange}
+      trackColor={{ false: isDark ? '#3A3A3C' : '#D1D5DB', true: colors.primary }}
+      thumbColor="#FFFFFF"
+      ios_backgroundColor={isDark ? '#3A3A3C' : '#D1D5DB'}
+    />
+  );
+}
+
+function SettingsRow({ icon: Icon, iconBg, iconColor, title, subtitle, theme, isDark, right, onPress }) {
+  const content = (
+    <>
+      <View style={[styles.iconWrap, { backgroundColor: isDark ? '#1C1C1E' : iconBg || colors.primarySoft }]}>
+        <Icon size={18} color={iconColor || colors.primary} />
+      </View>
+      <View style={styles.rowBody}>
+        <Text style={[styles.rowTitle, { color: theme.text, fontFamily: snPro('700') }]}>{title}</Text>
+        <Text style={[styles.rowSub, { color: theme.muted, fontFamily: snPro('400') }]}>{subtitle}</Text>
+      </View>
+      {right || (onPress ? <ChevronRight size={18} color={theme.muted} /> : null)}
+    </>
+  );
+
+  if (onPress) {
+    return (
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.row,
+          cardShadow,
+          { backgroundColor: theme.cardBg, borderColor: theme.border, opacity: pressed ? 0.9 : 1 },
+        ]}
+      >
+        {content}
+      </Pressable>
+    );
+  }
+
+  return (
+    <View style={[styles.row, cardShadow, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+      {content}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  scroll: { padding: 20, paddingBottom: 36 },
+  kicker: { fontSize: 11, letterSpacing: 1 },
+  title: { fontSize: 28, marginTop: 4, fontFamily: FONT.nova },
+  sub: { fontSize: 14, marginTop: 6, marginBottom: 16, lineHeight: 20 },
+  profileCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  profileInner: { padding: 16 },
+  profileTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  avatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 99,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  avatarText: { color: '#FFFFFF', fontSize: 22 },
+  name: { fontSize: 18 },
+  meta: { fontSize: 13, marginTop: 3 },
+  streakBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 99,
+  },
+  streakText: { fontSize: 12, marginLeft: 4 },
+  statRow: { flexDirection: 'row' },
+  miniStat: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  miniLbl: { fontSize: 9, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.4 },
+  miniVal: { fontSize: 13, marginTop: 2 },
+  premiumCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 18,
+  },
+  premiumIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  premiumTitle: { fontSize: 15 },
+  premiumSub: { fontSize: 12, marginTop: 2 },
+  section: {
+    fontSize: 10,
+    letterSpacing: 1,
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  linkGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -4,
+    marginBottom: 12,
+  },
+  quickLink: {
+    width: '50%',
+    paddingHorizontal: 4,
+    marginBottom: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 12,
+    alignItems: 'center',
+  },
+  quickIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  quickLbl: { fontSize: 13 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 10,
+  },
+  iconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  rowBody: { flex: 1, marginRight: 8 },
+  rowTitle: { fontSize: 15 },
+  rowSub: { fontSize: 12, marginTop: 3, lineHeight: 17 },
+  footer: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+});
