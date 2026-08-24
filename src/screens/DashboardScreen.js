@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ScanLine, Mic, Search, Droplets, Flame, ChevronRight, Plus } from 'lucide-react-native';
+import { ScanLine, Mic, Search, Droplets, Flame, ChevronRight, Plus, Wheat, Beef, Droplet } from 'lucide-react-native';
 import ScreenShell from '../components/ScreenShell';
 import ProgressRing from '../components/ProgressRing';
 import ProfileMenu from '../components/ProfileMenu';
@@ -80,9 +80,33 @@ export default function DashboardScreen({ navigation }) {
             <View style={[styles.macroPanel, { backgroundColor: isDark ? '#1C1C1E' : 'rgba(255,255,255,0.72)', borderColor: isDark ? c.border : 'rgba(0,112,224,0.1)' }]}>
               <Text style={[styles.macroTitle, { color: c.muted }]}>MACROS</Text>
               <View style={styles.macroCols}>
-                <MacroColumn label="Carbs" current={totals.carbs} goal={profile.carbs} color={colors.carbs} theme={c} isDark={isDark} />
-                <MacroColumn label="Protein" current={totals.protein} goal={profile.protein} color={colors.protein} theme={c} isDark={isDark} />
-                <MacroColumn label="Fat" current={totals.fat} goal={profile.fat} color={colors.fat} theme={c} isDark={isDark} />
+                <MacroColumn
+                  label="Carbs"
+                  current={totals.carbs}
+                  goal={profile.carbs}
+                  color={colors.carbs}
+                  Icon={Wheat}
+                  theme={c}
+                  isDark={isDark}
+                />
+                <MacroColumn
+                  label="Protein"
+                  current={totals.protein}
+                  goal={profile.protein}
+                  color={colors.protein}
+                  Icon={Beef}
+                  theme={c}
+                  isDark={isDark}
+                />
+                <MacroColumn
+                  label="Fat"
+                  current={totals.fat}
+                  goal={profile.fat}
+                  color={colors.fat}
+                  Icon={Droplet}
+                  theme={c}
+                  isDark={isDark}
+                />
               </View>
             </View>
           </LinearGradient>
@@ -267,11 +291,13 @@ function StatChip({ label, value, theme, isDark, accent }) {
   );
 }
 
-function MacroColumn({ label, current, goal, color, theme, isDark }) {
+function MacroColumn({ label, current, goal, color, Icon, theme, isDark }) {
   const pct = goal > 0 ? Math.min(1, current / goal) : 0;
   return (
     <View style={styles.macroCol}>
-      <View style={[styles.macroDot, { backgroundColor: color }]} />
+      <View style={[styles.macroIcon, { backgroundColor: isDark ? '#2A2A2A' : `${color}22` }]}>
+        <Icon size={16} color={color} />
+      </View>
       <Text style={[styles.macroVal, { color: theme.text }]}>{Math.round(current)}g</Text>
       <Text style={[styles.macroLbl, { color: theme.muted }]}>{label}</Text>
       <View style={[styles.macroTrack, { backgroundColor: isDark ? '#2A2A2A' : `${color}22` }]}>
@@ -407,7 +433,14 @@ const styles = StyleSheet.create({
   },
   macroCols: { flexDirection: 'row', gap: 10 },
   macroCol: { flex: 1, alignItems: 'center' },
-  macroDot: { width: 6, height: 6, borderRadius: 99, marginBottom: 6 },
+  macroIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
   macroVal: { fontSize: 15, fontWeight: '800' },
   macroLbl: { fontSize: 11, fontWeight: '600', marginTop: 2 },
   macroTrack: {

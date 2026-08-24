@@ -11,6 +11,14 @@ import FoodDetailScreen from '../screens/FoodDetailScreen';
 import ScanFoodScreen from '../screens/ScanFoodScreen';
 import VoiceLogScreen from '../screens/VoiceLogScreen';
 import RecipeDetailScreen from '../screens/RecipeDetailScreen';
+import EditGoalsScreen from '../screens/EditGoalsScreen';
+import LogWeightScreen from '../screens/LogWeightScreen';
+import LogExerciseScreen from '../screens/LogExerciseScreen';
+import RemindersScreen from '../screens/RemindersScreen';
+import ProfileEditScreen from '../screens/ProfileEditScreen';
+import FavoritesScreen from '../screens/FavoritesScreen';
+import BarcodeScanScreen from '../screens/BarcodeScanScreen';
+import WeeklyReportScreen from '../screens/WeeklyReportScreen';
 
 const Stack = createNativeStackNavigator();
 const ONBOARD_KEY = 'healthline_onboarded_v2';
@@ -68,6 +76,14 @@ export default function AppNavigator() {
           ...(Platform.OS === 'android' ? { statusBarTranslucent: true } : {}),
         }}
       />
+      <Stack.Screen name="EditGoals" component={EditGoalsScreen} />
+      <Stack.Screen name="LogWeight" component={LogWeightScreen} />
+      <Stack.Screen name="LogExercise" component={LogExerciseScreen} />
+      <Stack.Screen name="Reminders" component={RemindersScreen} />
+      <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
+      <Stack.Screen name="Favorites" component={FavoritesScreen} />
+      <Stack.Screen name="BarcodeScan" component={BarcodeScanScreen} />
+      <Stack.Screen name="WeeklyReport" component={WeeklyReportScreen} />
     </Stack.Navigator>
   );
 }

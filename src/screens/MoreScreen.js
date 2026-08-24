@@ -24,6 +24,11 @@ import {
   Bell,
   Shield,
   Crown,
+  Heart,
+  Dumbbell,
+  Barcode,
+  ChartLine,
+  User,
 } from 'lucide-react-native';
 import ScreenShell from '../components/ScreenShell';
 import { useTheme } from '../context/ThemeContext';
@@ -61,7 +66,10 @@ export default function MoreScreen({ navigation }) {
           Profile, goals, theme, and app info. All local UI — no account API yet.
         </Text>
 
-        <View style={[styles.profileCard, cardShadow, { borderColor: isDark ? c.border : 'rgba(0,112,224,0.14)' }]}>
+        <Pressable
+          onPress={() => goStack('ProfileEdit')}
+          style={[styles.profileCard, cardShadow, { borderColor: isDark ? c.border : 'rgba(0,112,224,0.14)' }]}
+        >
           <LinearGradient
             colors={isDark ? ['#161616', '#121212'] : ['#FFFFFF', '#F0F7FF']}
             start={{ x: 0, y: 0 }}
@@ -77,6 +85,7 @@ export default function MoreScreen({ navigation }) {
                 <Text style={[styles.meta, { color: c.muted, fontFamily: snPro('500') }]}>
                   {GOAL_LABEL[goal]} · {profile.calories} kcal goal
                 </Text>
+                <Text style={[styles.editHint, { color: colors.primary, fontFamily: snPro('600') }]}>Tap to edit profile</Text>
               </View>
               <View style={[styles.streakBadge, { backgroundColor: isDark ? '#1C1C1E' : colors.primarySoft }]}>
                 <Flame size={14} color={colors.carbs} />
@@ -90,7 +99,7 @@ export default function MoreScreen({ navigation }) {
               <MiniStat icon={Droplets} label="Water" value={`${water}/${profile.waterGoal}`} theme={c} isDark={isDark} accent={colors.primary} />
             </View>
           </LinearGradient>
-        </View>
+        </Pressable>
 
         <View style={[styles.premiumCard, { backgroundColor: isDark ? '#1A2744' : colors.primarySoft, borderColor: isDark ? '#2A3A5C' : 'rgba(0,112,224,0.18)' }]}>
           <View style={[styles.premiumIcon, { backgroundColor: isDark ? '#243B66' : '#FFFFFF' }]}>
@@ -106,12 +115,21 @@ export default function MoreScreen({ navigation }) {
         <SectionLabel label="Quick links" theme={c} />
         <View style={styles.linkGrid}>
           <QuickLink icon={Compass} label="Recipes" color={colors.primary} theme={c} isDark={isDark} onPress={() => goTab('Discover')} />
-          <QuickLink icon={ScanLine} label="Scan meal" color={colors.primary} theme={c} isDark={isDark} onPress={() => goStack('ScanFood', { meal: 'lunch' })} />
-          <QuickLink icon={Mic} label="Voice log" color={colors.aiPurple} theme={c} isDark={isDark} onPress={() => goStack('VoiceLog', { meal: 'snacks' })} />
-          <QuickLink icon={Flame} label="Progress" color={colors.exercise} theme={c} isDark={isDark} onPress={() => goTab('Progress')} />
+          <QuickLink icon={Heart} label="Favorites" color={colors.danger} theme={c} isDark={isDark} onPress={() => goStack('Favorites')} />
+          <QuickLink icon={Barcode} label="Barcode" color={colors.primary} theme={c} isDark={isDark} onPress={() => goStack('BarcodeScan', { meal: 'snacks' })} />
+          <QuickLink icon={ChartLine} label="Report" color={colors.exercise} theme={c} isDark={isDark} onPress={() => goStack('WeeklyReport')} />
         </View>
 
         <SectionLabel label="Goals & health" theme={c} />
+        <SettingsRow
+          icon={User}
+          iconBg={colors.primarySoft}
+          title="Edit profile"
+          subtitle={`${profile.name} · ${GOAL_LABEL[goal]}`}
+          theme={c}
+          isDark={isDark}
+          onPress={() => goStack('ProfileEdit')}
+        />
         <SettingsRow
           icon={Target}
           iconBg={colors.primarySoft}
@@ -119,6 +137,27 @@ export default function MoreScreen({ navigation }) {
           subtitle={`${profile.protein}g protein · ${profile.carbs}g carbs · ${profile.fat}g fat`}
           theme={c}
           isDark={isDark}
+          onPress={() => goStack('EditGoals')}
+        />
+        <SettingsRow
+          icon={Scale}
+          iconBg={`${colors.accent}22`}
+          iconColor={colors.accent}
+          title="Log weight"
+          subtitle={`Current ${profile.weight} kg · goal ${profile.goalWeight} kg`}
+          theme={c}
+          isDark={isDark}
+          onPress={() => goStack('LogWeight')}
+        />
+        <SettingsRow
+          icon={Dumbbell}
+          iconBg={`${colors.exercise}22`}
+          iconColor={colors.exercise}
+          title="Log exercise"
+          subtitle="Walk, run, strength & more"
+          theme={c}
+          isDark={isDark}
+          onPress={() => goStack('LogExercise')}
         />
         <SettingsRow
           icon={Flame}
@@ -129,6 +168,15 @@ export default function MoreScreen({ navigation }) {
           theme={c}
           isDark={isDark}
           onPress={() => goTab('Diary')}
+        />
+        <SettingsRow
+          icon={ChartLine}
+          iconBg={colors.primarySoft}
+          title="Weekly report"
+          subtitle="7-day calories, weight & activity"
+          theme={c}
+          isDark={isDark}
+          onPress={() => goStack('WeeklyReport')}
         />
 
         <SectionLabel label="Preferences" theme={c} />
@@ -146,16 +194,36 @@ export default function MoreScreen({ navigation }) {
           iconBg={`${colors.protein}22`}
           iconColor={colors.protein}
           title="Reminders"
-          subtitle="Meal & water nudges — UI placeholder"
+          subtitle="Meal & water nudges"
           theme={c}
           isDark={isDark}
+          onPress={() => goStack('Reminders')}
         />
         <SettingsRow
           icon={Sparkles}
           iconBg={`${colors.aiPurple}22`}
           iconColor={colors.aiPurple}
-          title="AI features"
-          subtitle="Meal scan + voice logging — model connects later"
+          title="AI meal scan"
+          subtitle="Camera AI placeholder"
+          theme={c}
+          isDark={isDark}
+          onPress={() => goStack('ScanFood', { meal: 'lunch' })}
+        />
+        <SettingsRow
+          icon={Mic}
+          iconBg={`${colors.aiPurple}22`}
+          iconColor={colors.aiPurple}
+          title="Voice log"
+          subtitle="Speak a meal — UI ready"
+          theme={c}
+          isDark={isDark}
+          onPress={() => goStack('VoiceLog', { meal: 'snacks' })}
+        />
+        <SettingsRow
+          icon={ScanLine}
+          iconBg={colors.primarySoft}
+          title="Scan meal"
+          subtitle="Same as AI scan entry"
           theme={c}
           isDark={isDark}
           onPress={() => goStack('ScanFood', { meal: 'lunch' })}
@@ -206,23 +274,25 @@ function MiniStat({ icon: Icon, label, value, theme, isDark, accent }) {
 
 function QuickLink({ icon: Icon, label, color, theme, isDark, onPress }) {
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.quickLink,
-        cardShadow,
-        {
-          backgroundColor: theme.cardBg,
-          borderColor: theme.border,
-          opacity: pressed ? 0.88 : 1,
-        },
-      ]}
-    >
-      <View style={[styles.quickIcon, { backgroundColor: isDark ? '#1C1C1E' : `${color}18` }]}>
-        <Icon size={18} color={color} />
-      </View>
-      <Text style={[styles.quickLbl, { color: theme.text, fontFamily: snPro('600') }]}>{label}</Text>
-    </Pressable>
+    <View style={styles.quickWrap}>
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.quickLink,
+          cardShadow,
+          {
+            backgroundColor: theme.cardBg,
+            borderColor: theme.border,
+            opacity: pressed ? 0.88 : 1,
+          },
+        ]}
+      >
+        <View style={[styles.quickIcon, { backgroundColor: isDark ? '#1C1C1E' : `${color}18` }]}>
+          <Icon size={18} color={color} />
+        </View>
+        <Text style={[styles.quickLbl, { color: theme.text, fontFamily: snPro('600') }]}>{label}</Text>
+      </Pressable>
+    </View>
   );
 }
 
@@ -302,6 +372,7 @@ const styles = StyleSheet.create({
   avatarText: { color: '#FFFFFF', fontSize: 22 },
   name: { fontSize: 18 },
   meta: { fontSize: 13, marginTop: 3 },
+  editHint: { fontSize: 12, marginTop: 4 },
   streakBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -351,10 +422,12 @@ const styles = StyleSheet.create({
     marginHorizontal: -4,
     marginBottom: 12,
   },
-  quickLink: {
+  quickWrap: {
     width: '50%',
     paddingHorizontal: 4,
     marginBottom: 8,
+  },
+  quickLink: {
     borderRadius: 16,
     borderWidth: 1,
     padding: 12,

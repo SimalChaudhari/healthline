@@ -16,6 +16,7 @@ import MealSection from '../components/MealSection';
 import DateCalendarModal from '../components/DateCalendarModal';
 import { useTheme } from '../context/ThemeContext';
 import { useDiary } from '../context/DiaryContext';
+import { useConfirm } from '../context/ConfirmContext';
 import { colors, themeColors } from '../config/colors';
 import { FONT } from '../config/fonts';
 
@@ -41,6 +42,17 @@ export default function DiaryScreen({ navigation }) {
   const { isDark } = useTheme();
   const c = themeColors(isDark);
   const { dateKey, setDateKey, meals, removeFood, remaining, totals, burned, exercise, profile } = useDiary();
+  const { confirm } = useConfirm();
+
+  const handleRemoveFood = async (mealKey, logId, foodName) => {
+    const ok = await confirm({
+      title: 'Delete food?',
+      message: `Remove “${foodName || 'this item'}” from your diary? This cannot be undone.`,
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+    });
+    if (ok) removeFood(mealKey, logId);
+  };
 
   const shiftDay = (delta) => {
     const d = new Date(`${dateKey}T12:00:00`);
@@ -122,7 +134,10 @@ export default function DiaryScreen({ navigation }) {
             theme={c}
             isDark={isDark}
             onAdd={() => navigation.navigate('AddFood', { meal: m.key })}
-            onRemove={(logId) => removeFood(m.key, logId)}
+            onRemove={(logId) => {
+              const item = (meals[m.key] || []).find((f) => f.logId === logId);
+              handleRemoveFood(m.key, logId, item?.name);
+            }}
           />
         ))}
 

@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { DiaryProvider } from './src/context/DiaryContext';
+import { ConfirmProvider } from './src/context/ConfirmContext';
 import { FontProvider } from './src/config/FontProvider';
 import AppNavigator from './src/navigation/AppNavigator';
 
@@ -28,10 +29,12 @@ function AppContent() {
   return (
     <View style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#F4F6F8' }}>
       <DiaryProvider>
-        <NavigationContainer theme={buildNavTheme(isDark)}>
-          <StatusBar style={isDark ? 'light' : 'dark'} />
-          <AppNavigator />
-        </NavigationContainer>
+        <ConfirmProvider>
+          <NavigationContainer theme={buildNavTheme(isDark)}>
+            <StatusBar style={isDark ? 'light' : 'dark'} />
+            <AppNavigator />
+          </NavigationContainer>
+        </ConfirmProvider>
       </DiaryProvider>
     </View>
   );

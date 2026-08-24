@@ -2,7 +2,13 @@ import React, { createContext, useCallback, useContext, useMemo, useState, useEf
 
 const DiaryContext = createContext(null);
 
-const todayKey = () => new Date().toISOString().slice(0, 10);
+const todayKey = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
 
 function emptyMeals() {
   return { breakfast: [], lunch: [], dinner: [], snacks: [] };
@@ -48,6 +54,14 @@ const SEED = {
   ],
 };
 
+const DEFAULT_REMINDERS = {
+  breakfast: true,
+  lunch: true,
+  dinner: true,
+  water: true,
+  weighIn: false,
+};
+
 export function DiaryProvider({ children }) {
   const [dateKey, setDateKey] = useState(todayKey);
   const [meals, setMeals] = useState(SEED);
@@ -55,7 +69,7 @@ export function DiaryProvider({ children }) {
     { logId: 'ex-1', name: 'Walk', minutes: 32, calories: 140 },
   ]);
   const [goal, setGoal] = useState('lose');
-  const [profile] = useState({
+  const [profile, setProfile] = useState({
     name: 'Alex',
     calories: 2200,
     carbs: 220,
@@ -66,6 +80,13 @@ export function DiaryProvider({ children }) {
     goalWeight: 68,
   });
   const [water, setWater] = useState(4);
+  const [weightLogs, setWeightLogs] = useState([
+    { id: 'w1', date: '2026-08-17', weight: 73.1 },
+    { id: 'w2', date: '2026-08-20', weight: 72.7 },
+    { id: 'w3', date: '2026-08-22', weight: 72.4 },
+  ]);
+  const [favorites, setFavorites] = useState(['f4', 'f9', 'f7']);
+  const [reminders, setReminders] = useState(DEFAULT_REMINDERS);
 
   useEffect(() => {
     setWater((w) => (w > profile.waterGoal ? profile.waterGoal : w));
@@ -122,6 +143,10 @@ export function DiaryProvider({ children }) {
     ]);
   }, []);
 
+  const removeExercise = useCallback((logId) => {
+    setExercise((prev) => prev.filter((item) => item.logId !== logId));
+  }, []);
+
   const addWater = useCallback(() => {
     setWater((n) => Math.min(n + 1, profile.waterGoal));
   }, [profile.waterGoal]);
@@ -134,6 +159,32 @@ export function DiaryProvider({ children }) {
     setWater(0);
   }, []);
 
+  const updateProfile = useCallback((patch) => {
+    setProfile((prev) => ({ ...prev, ...patch }));
+  }, []);
+
+  const addWeightLog = useCallback((weight) => {
+    const value = Number(weight);
+    if (!value || Number.isNaN(value)) return;
+    const entry = {
+      id: `w-${Date.now()}`,
+      date: todayKey(),
+      weight: Math.round(value * 10) / 10,
+    };
+    setWeightLogs((prev) => [entry, ...prev.filter((w) => w.date !== entry.date)]);
+    setProfile((prev) => ({ ...prev, weight: entry.weight }));
+  }, []);
+
+  const toggleFavorite = useCallback((foodId) => {
+    setFavorites((prev) =>
+      prev.includes(foodId) ? prev.filter((id) => id !== foodId) : [...prev, foodId],
+    );
+  }, []);
+
+  const updateReminder = useCallback((key, value) => {
+    setReminders((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
   const value = {
     dateKey,
     setDateKey,
@@ -143,15 +194,23 @@ export function DiaryProvider({ children }) {
     goal,
     setGoal,
     profile,
+    updateProfile,
     totals,
     burned,
     remaining,
     addFood,
     removeFood,
     addExercise,
+    removeExercise,
     addWater,
     resetWater,
     resetDay,
+    weightLogs,
+    addWeightLog,
+    favorites,
+    toggleFavorite,
+    reminders,
+    updateReminder,
   };
 
   return <DiaryContext.Provider value={value}>{children}</DiaryContext.Provider>;

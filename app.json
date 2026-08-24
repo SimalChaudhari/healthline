@@ -13,11 +13,16 @@
       "backgroundColor": "#E8F3FF"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow Healthline to use the camera to scan meals and food barcodes.",
+        "NSPhotoLibraryUsageDescription": "Allow Healthline to upload meal photos from your gallery for AI nutrition estimates."
+      }
     },
     "android": {
       "package": "com.healthline.nutrition",
       "softwareKeyboardLayoutMode": "resize",
+      "permissions": ["CAMERA", "READ_MEDIA_IMAGES", "READ_EXTERNAL_STORAGE"],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -31,7 +36,21 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Healthline to use the camera to scan meals and food barcodes.",
+          "microphonePermission": "Allow Healthline to access your microphone for voice logging.",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Healthline to upload meal photos from your gallery for AI nutrition estimates."
+        }
+      ]
     ]
   }
 }
