@@ -6,11 +6,11 @@ import { LayoutDashboard, BookOpen, Compass, ChartLine, Menu } from 'lucide-reac
 import { useTheme } from '../context/ThemeContext';
 import { themeColors, colors } from '../config/colors';
 import { snPro } from '../config/fonts';
-import DashboardScreen from '../screens/DashboardScreen';
-import DiaryScreen from '../screens/DiaryScreen';
-import DiscoverScreen from '../screens/DiscoverScreen';
-import ProgressScreen from '../screens/ProgressScreen';
-import MoreScreen from '../screens/MoreScreen';
+import DashboardScreen from '../screens/Home/DashboardScreen';
+import DiaryScreen from '../screens/Diary/DiaryScreen';
+import DiscoverScreen from '../screens/Discover/DiscoverScreen';
+import ProgressScreen from '../screens/Progress/ProgressScreen';
+import MoreScreen from '../screens/More/MoreScreen';
 
 const Tab = createBottomTabNavigator();
 

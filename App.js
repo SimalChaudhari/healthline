@@ -1,12 +1,14 @@
 import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { DiaryProvider } from './src/context/DiaryContext';
+import { AuthProvider } from './src/context/AuthContext';
 import { ConfirmProvider } from './src/context/ConfirmContext';
 import { FontProvider } from './src/config/FontProvider';
+import ThemedStatusBar from './src/components/common/ThemedStatusBar';
+import { themeColors } from './src/config/colors';
 import AppNavigator from './src/navigation/AppNavigator';
 
 function buildNavTheme(isDark) {
@@ -26,15 +28,18 @@ function buildNavTheme(isDark) {
 
 function AppContent() {
   const { isDark } = useTheme();
+  const c = themeColors(isDark);
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#F4F6F8' }}>
+    <View style={{ flex: 1, backgroundColor: c.pageBg }}>
       <DiaryProvider>
-        <ConfirmProvider>
-          <NavigationContainer theme={buildNavTheme(isDark)}>
-            <StatusBar style={isDark ? 'light' : 'dark'} />
-            <AppNavigator />
-          </NavigationContainer>
-        </ConfirmProvider>
+        <AuthProvider>
+          <ConfirmProvider>
+            <NavigationContainer theme={buildNavTheme(isDark)}>
+              <ThemedStatusBar />
+              <AppNavigator />
+            </NavigationContainer>
+          </ConfirmProvider>
+        </AuthProvider>
       </DiaryProvider>
     </View>
   );

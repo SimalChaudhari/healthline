@@ -1,30 +1,13 @@
 import { AI_CONFIG, hasAiKey } from '../config/ai';
+import {
+  SYSTEM_PROMPT,
+  buildTextUserPrompt,
+  buildVisionUserPrompt,
+  buildVisionFallbackText,
+} from '../config/aiPrompts';
+import { stripDataUrlPrefix } from '../utils/prepareMealImage';
 
-const SYSTEM_PROMPT = `You are a nutrition assistant for the Healthline food diary app.
-Analyze the meal (photo and/or text) and return ONLY valid JSON — no markdown fences, no commentary.
-
-Schema:
-{
-  "items": [
-    {
-      "name": "specific food name",
-      "serving": "amount e.g. 1 cup / 100g / 1 medium",
-      "calories": number,
-      "carbs": number,
-      "protein": number,
-      "fat": number
-    }
-  ],
-  "summary": "short friendly title for the whole meal"
-}
-
-Rules:
-- NEVER return a single vague item like "Mixed meal", "Food", or "Plate". Name real foods you see or that were described (e.g. tomato, banana, broccoli, grapes).
-- Split the plate into 2–6 separate food items whenever possible.
-- Estimate macros in grams as numbers (not strings). Calories must be realistic for each item.
-- Prefer common grocery/produce names that users recognize.
-- summary should describe the plate, e.g. "Fresh fruit & veg plate".`;
-
+const VAGUE_NAMES = /^(mixed\s*meal|food|plate|dish|meal|item|unknown|assorted|various|other)$/i;
 
 function extractJson(text) {
   if (!text) throw new Error('Empty AI response');
@@ -41,22 +24,60 @@ function extractJson(text) {
   }
 }
 
+/** Soft-correct macros so calories ≈ 4c+4p+9f when wildly off. */
+function reconcileMacros({ calories, carbs, protein, fat }) {
+  const fromMacros = carbs * 4 + protein * 4 + fat * 9;
+  if (fromMacros <= 0) return { calories, carbs, protein, fat };
+  const ratio = calories / fromMacros;
+  if (calories > 0 && (ratio < 0.8 || ratio > 1.2)) {
+    const scale = Math.sqrt(Math.min(Math.max(ratio, 0.5), 2));
+    return {
+      calories,
+      carbs: Math.max(0, Math.round(carbs * scale)),
+      protein: Math.max(0, Math.round(protein * scale)),
+      fat: Math.max(0, Math.round(fat * scale)),
+    };
+  }
+  return { calories, carbs, protein, fat };
+}
+
 function normalizeItems(raw) {
   const list = Array.isArray(raw?.items) ? raw.items : [];
   return list
-    .map((item, i) => ({
-      id: `ai-${Date.now()}-${i}`,
-      name: String(item.name || 'Food').trim(),
-      serving: String(item.serving || '1 serving').trim(),
-      calories: Math.max(0, Math.round(Number(item.calories) || 0)),
-      carbs: Math.max(0, Math.round(Number(item.carbs) || 0)),
-      protein: Math.max(0, Math.round(Number(item.protein) || 0)),
-      fat: Math.max(0, Math.round(Number(item.fat) || 0)),
-    }))
-    .filter((item) => item.name && item.calories > 0);
+    .map((item, i) => {
+      const name = String(item.name || '').trim();
+      let calories = Math.max(0, Math.round(Number(item.calories) || 0));
+      let carbs = Math.max(0, Math.round(Number(item.carbs) || 0));
+      let protein = Math.max(0, Math.round(Number(item.protein) || 0));
+      let fat = Math.max(0, Math.round(Number(item.fat) || 0));
+      ({ calories, carbs, protein, fat } = reconcileMacros({ calories, carbs, protein, fat }));
+
+      const confidence = Math.min(1, Math.max(0, Number(item.confidence) || 0.7));
+
+      return {
+        id: `ai-${Date.now()}-${i}`,
+        name,
+        serving: String(item.serving || '1 serving').trim(),
+        calories,
+        carbs,
+        protein,
+        fat,
+        confidence,
+      };
+    })
+    .filter(
+      (item) =>
+        item.name &&
+        !VAGUE_NAMES.test(item.name) &&
+        item.calories > 0 &&
+        item.calories < 5000,
+    );
 }
 
-export async function chatCompletion(messages, { temperature = 0.2, maxTokens = 800 } = {}) {
+export async function chatCompletion(
+  messages,
+  { temperature = 0.15, maxTokens = 1000, model = AI_CONFIG.model } = {},
+) {
   if (!hasAiKey()) {
     const err = new Error('Missing OpenRouter API key. Add EXPO_PUBLIC_OPENROUTER_API_KEY in .env');
     err.code = 'NO_KEY';
@@ -72,7 +93,7 @@ export async function chatCompletion(messages, { temperature = 0.2, maxTokens = 
       'X-Title': AI_CONFIG.appTitle,
     },
     body: JSON.stringify({
-      model: AI_CONFIG.model,
+      model,
       messages,
       temperature,
       max_tokens: maxTokens,
@@ -91,82 +112,89 @@ export async function chatCompletion(messages, { temperature = 0.2, maxTokens = 
   return data?.choices?.[0]?.message?.content || '';
 }
 
-/** Parse a meal description / voice transcript into diary food items. */
-export async function parseFoodFromText(userText) {
-  const content = await chatCompletion([
-    { role: 'system', content: SYSTEM_PROMPT },
-    {
-      role: 'user',
-      content: `Meal description:\n${String(userText || '').trim()}\n\nReturn JSON only.`,
-    },
-  ]);
-  const parsed = extractJson(content);
+function finalizeResult(parsed) {
   const items = normalizeItems(parsed);
   if (!items.length) {
     throw new Error('AI returned no usable food items');
   }
   return {
     items,
-    summary: parsed.summary || items.map((i) => i.name).join(', '),
+    summary: String(parsed.summary || items.map((i) => i.name).join(', ')).trim(),
   };
 }
 
-/**
- * Diagnose food from a meal photo (base64).
- * Tries vision first; if the model rejects images, falls back to text note.
- */
-export async function parseFoodFromImage({ base64, mimeType = 'image/jpeg', note = '' }) {
-  if (!base64) {
-    throw new Error('No image data');
-  }
+/** Parse a meal description / voice transcript into diary food items. */
+export async function parseFoodFromText(userText) {
+  const content = await chatCompletion([
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: buildTextUserPrompt(userText) },
+  ]);
+  return finalizeResult(extractJson(content));
+}
 
-  const hint = String(note || '').trim();
-  const textPart = [
-    'Look at this meal photo carefully.',
-    'List each visible food separately (fruits, vegetables, proteins, sides).',
-    'Do not use vague labels like Mixed meal or Plate.',
-    hint ? `User note: ${hint}` : '',
-    'Return JSON only matching the schema.',
-  ]
-    .filter(Boolean)
-    .join('\n');
+function visionModelChain() {
+  const primary = AI_CONFIG.visionModel;
+  const extras = Array.isArray(AI_CONFIG.visionFallbacks) ? AI_CONFIG.visionFallbacks : [];
+  return [...new Set([primary, ...extras].filter(Boolean))];
+}
 
-  const dataUrl = `data:${mimeType};base64,${base64}`;
-
-  try {
-    const content = await chatCompletion([
+async function runVisionOnce({ dataUrl, hint, model }) {
+  const content = await chatCompletion(
+    [
       { role: 'system', content: SYSTEM_PROMPT },
       {
         role: 'user',
         content: [
-          { type: 'text', text: textPart },
+          { type: 'text', text: buildVisionUserPrompt(hint) },
           { type: 'image_url', image_url: { url: dataUrl } },
         ],
       },
-    ], { maxTokens: 1000 });
+    ],
+    { maxTokens: 1200, model },
+  );
+  return finalizeResult(extractJson(content));
+}
 
-    const parsed = extractJson(content);
-    const items = normalizeItems(parsed);
-    if (!items.length) throw new Error('AI returned no usable food items');
-    return {
-      items,
-      summary: parsed.summary || items.map((i) => i.name).join(', '),
-      mode: 'vision',
-    };
-  } catch (visionErr) {
-    // Free Nemotron may be text-only — fall back to description.
-    if (!hint) {
-      const err = new Error(
-        `${visionErr.message || 'Image AI failed'}. Add a short description and try again.`,
-      );
-      err.code = 'VISION_FALLBACK';
-      throw err;
-    }
-    const fallback = await parseFoodFromText(
-      `Meal photo uploaded. User description: ${hint}`,
-    );
-    return { ...fallback, mode: 'text-fallback' };
+/**
+ * Diagnose food from a meal photo (base64).
+ * Uses a vision-capable model; falls back across models, then text note.
+ */
+export async function parseFoodFromImage({ base64, mimeType = 'image/jpeg', note = '' }) {
+  const clean = stripDataUrlPrefix(base64);
+  if (!clean) {
+    throw new Error('No image data');
   }
+
+  const hint = String(note || '').trim();
+  const mime = mimeType || 'image/jpeg';
+  const dataUrl = `data:${mime};base64,${clean}`;
+  const models = visionModelChain();
+
+  let lastErr = null;
+  for (const model of models) {
+    try {
+      const parsed = await runVisionOnce({ dataUrl, hint, model });
+      return { ...parsed, mode: 'vision', model };
+    } catch (err) {
+      lastErr = err;
+      continue;
+    }
+  }
+
+  if (hint) {
+    try {
+      const fallback = await parseFoodFromText(buildVisionFallbackText(hint));
+      return { ...fallback, mode: 'text-fallback' };
+    } catch (textErr) {
+      lastErr = textErr;
+    }
+  }
+
+  const detail = lastErr?.message || 'Image AI failed';
+  const tip = hint ? '' : ' Add a short food description and tap Diagnose again.';
+  const err = new Error(`${detail}.${tip}`);
+  err.code = 'VISION_FAILED';
+  throw err;
 }
 
 export { hasAiKey };

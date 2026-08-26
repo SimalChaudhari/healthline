@@ -28,6 +28,8 @@ export function themeColors(isDark) {
     overlay: isDark ? 'rgba(0,0,0,0.72)' : 'rgba(0,0,0,0.45)',
     track: isDark ? '#2A2A2A' : '#EEF1F4',
     chip: isDark ? '#1C1C1E' : '#F3F4F6',
+    /** Letterbox / stage behind meal photos in scan results */
+    imageStage: isDark ? '#1C1C1E' : '#EEF1F4',
   };
 }
 

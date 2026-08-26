@@ -1,0 +1,641 @@
+HEALTH & NUTRITION APP — COMPLETE FEATURE REQUIREMENTS
+Reference: MyFitnessPal + Healthline nutrition/health app concepts
+Platform: React Native
+AI: Planned for a later phase
+
+1. APP OVERVIEW
+Build a modern health and nutrition tracking mobile application inspired by the core experience of MyFitnessPal and nutrition/health apps reviewed by Healthline.
+
+Core goals:
+- Set personal health and nutrition goals
+- Track food and meals
+- Track calories and macronutrients
+- Track water
+- Track exercise
+- Track weight and progress
+- Discover healthy recipes
+- Plan meals
+- Create shopping lists
+- Receive reminders and basic nutrition insights
+- Add AI-powered nutrition features later
+
+The architecture and database must be AI-ready from the beginning.
+
+2. AUTHENTICATION
+- Sign up
+- Login
+- Logout
+- Forgot/reset password
+- Email verification
+- Optional social login
+- Session management
+- Account deletion
+
+3. USER ONBOARDING
+Collect:
+- First name
+- Last name
+- Age
+- Height
+- Current weight
+- Gender/sex where appropriate
+- Activity level
+
+Goals:
+- Lose weight
+- Maintain weight
+- Gain weight
+- Build muscle
+- Improve general nutrition
+
+Goal settings:
+- Target weight
+- Preferred weekly progress
+- Daily calorie target
+- Protein target
+- Carbohydrate target
+- Fat target
+
+Preferences:
+- Vegetarian
+- Vegan
+- Non-vegetarian
+- Other dietary preferences
+- Food allergies
+- Food dislikes
+- Favorite foods
+- Meal preferences
+
+Calculate/recommend initial calorie and macro targets from profile and goals, while allowing users to edit targets.
+
+4. HOME / DASHBOARD
+Show:
+- Calories consumed / daily target / remaining
+- Protein / target
+- Carbs / target
+- Fat / target
+- Breakfast, lunch, dinner, snacks
+- Water intake / target
+- Steps when available
+- Exercise summary
+- Calories burned
+- Daily progress
+
+Quick actions:
+- Add Food
+- Scan Food
+- Add Water
+- Add Exercise
+- Log Weight
+- Ask AI (future)
+
+Example:
+Today's Goal
+1,850 / 2,200 kcal
+Protein: 85 / 120 g
+Carbs: 190 / 250 g
+Fat: 55 / 70 g
+Breakfast: 420 kcal
+Lunch: 650 kcal
+Dinner: --
+Snacks: 180 kcal
+Water: 5 / 8 glasses
+Steps: 6,240
+
+5. FOOD TRACKING / FOOD DIARY
+Meal categories:
+- Breakfast
+- Lunch
+- Dinner
+- Snacks
+
+Food entry methods:
+A. Search food by name, brand, or category.
+B. Barcode scanning for packaged foods.
+C. Manual entry:
+   - Food name
+   - Serving size
+   - Calories
+   - Protein
+   - Carbs
+   - Fat
+   - Fiber
+   - Sugar
+   - Sodium
+   - Other available micronutrients
+D. Favorite foods.
+E. Recent foods with one-tap re-add.
+
+6. FOOD DETAIL
+Display:
+- Food name
+- Brand
+- Serving size
+- Calories
+- Protein
+- Carbs
+- Fat
+- Fiber
+- Sugar
+- Sodium
+- Available vitamins/minerals
+
+Actions:
+- Add to Breakfast/Lunch/Dinner/Snack
+- Edit serving size
+- Save as favorite
+
+7. MEAL DETAILS
+Show all foods in a meal with totals.
+
+Example:
+Breakfast
+Oatmeal — 250 kcal
+Banana — 105 kcal
+Milk — 120 kcal
+Total — 475 kcal
+Protein — 18 g
+Carbs — 72 g
+Fat — 9 g
+Fiber — 8 g
+
+Actions:
+- Add Food
+- Edit Food
+- Change Serving
+- Remove Food
+- Save Meal
+
+8. NUTRITION / MACRO DASHBOARD
+Track:
+Calories:
+- Consumed
+- Target
+- Remaining
+
+Macros:
+- Protein
+- Carbohydrates
+- Fat
+
+Micronutrients:
+- Fiber
+- Sugar
+- Sodium
+- Calcium
+- Iron
+- Potassium
+- Vitamin D
+- Vitamin B12
+- Other available nutrients
+
+Use clear progress bars, rings, or charts.
+
+9. WATER TRACKING
+- Daily water target
+- Current intake
+- Quick add
+- Custom amount
+- Water history
+- Custom units
+
+Example:
+5 / 8 glasses
++250 ml
++500 ml
++1 L
+
+10. EXERCISE TRACKING
+Categories:
+- Walking
+- Running
+- Cycling
+- Gym
+- Strength Training
+- Yoga
+- Swimming
+- Custom Workout
+
+Entry:
+- Exercise name
+- Duration
+- Intensity where applicable
+- Calories burned
+- Date/time
+
+Show daily and weekly exercise, calories burned, and history.
+
+Prepare architecture for:
+- Steps
+- Apple Health
+- Google Health Connect
+- Wearables
+- Other fitness devices
+
+11. WEIGHT TRACKING
+- Add/edit weight
+- Weight history
+- Target weight
+- Weight progress
+- Total change
+
+Charts:
+- 7 days
+- 30 days
+- 3 months
+- 6 months
+- 1 year
+
+12. PROGRESS / ANALYTICS
+Tabs:
+- Weight
+- Calories
+- Protein
+- Carbs
+- Fat
+- Water
+- Exercise
+
+Periods:
+- Week
+- Month
+- 3 Months
+- 6 Months
+- Year
+
+Show:
+- Average calories
+- Average protein
+- Average water
+- Exercise frequency
+- Weight change
+- Goal completion
+- Nutrition consistency
+- Logging streaks
+
+13. RECIPES
+Categories:
+- Breakfast
+- Lunch
+- Dinner
+- Snacks
+- High Protein
+- Low Calorie
+- Vegetarian
+- Vegan
+- Quick Meals
+
+Recipe detail:
+- Image
+- Name
+- Calories
+- Protein
+- Carbs
+- Fat
+- Fiber
+- Ingredients
+- Instructions
+- Preparation time
+- Serving size
+
+Actions:
+- Add ingredients to shopping list
+- Add to meal plan
+- Add to diary
+- Save
+- Share
+
+14. MEAL PLANNER
+Weekly planner with:
+- Breakfast
+- Lunch
+- Dinner
+- Snacks
+
+Features:
+- Daily/weekly planning
+- Add saved recipe
+- Add custom meal
+- Change servings
+- Remove meal
+- Copy meal to another day
+
+15. SHOPPING LIST
+Generate lists from meal plans and recipes.
+
+Example:
+Chicken — 1 kg
+Rice — 2 kg
+Banana — 7
+Eggs — 12
+Milk — 2 L
+
+Features:
+- Add/remove item
+- Edit quantity
+- Mark purchased
+- Generate from meal plan
+- Generate from recipes
+- Categorize groceries
+
+Categories:
+- Fruits
+- Vegetables
+- Meat
+- Dairy
+- Grains
+- Snacks
+- Beverages
+- Other
+
+16. REMINDERS & NOTIFICATIONS
+- Breakfast reminder
+- Lunch reminder
+- Dinner reminder
+- Snack reminder
+- Water reminder
+- Exercise reminder
+- Weight logging reminder
+- Food logging reminder
+- Meal planning reminder
+
+Allow each reminder to be enabled/disabled.
+
+17. BASIC HEALTH / NUTRITION INSIGHTS
+Use rule-based insights before AI.
+
+Examples:
+- Your protein intake is below your daily target.
+- You have 35 g protein remaining today.
+- Great job! You stayed within your calorie target for 5 consecutive days.
+- Your water intake is below your daily goal.
+- The majority of your calories today came from dinner.
+
+Insights must use the user's tracked data.
+
+IMPORTANT: These are general wellness/nutrition insights, not medical diagnosis or treatment.
+
+18. AI FEATURES — FUTURE PHASE
+Keep AI as a separate service/module.
+
+A. AI Nutrition Coach
+Example:
+User: What should I eat for dinner?
+AI: You have 620 calories remaining today and your protein target is still short. Here are three options...
+
+B. AI Food Photo Recognition
+Flow:
+Take food photo -> AI analysis -> estimated foods/nutrition -> user review -> user confirmation -> save to diary.
+
+Example:
+Rice — estimated 220 kcal
+Chicken — estimated 280 kcal
+Salad — estimated 80 kcal
+Estimated total: approximately 580 kcal
+
+Photo nutrition must be clearly labeled as an estimate and require confirmation before saving.
+
+C. Natural Language Food Logging
+Example:
+User: I had two eggs, two rotis and one cup of chai.
+AI:
+- Identifies foods
+- Estimates servings
+- Shows nutrition estimate
+- Requests confirmation
+- Saves confirmed items
+
+D. AI Meal Recommendations
+Use:
+- Goals
+- Calorie target
+- Macro target
+- Dietary preferences
+- Allergies
+- Food history
+- Remaining calories
+
+E. AI Meal Plan Generator
+Generate daily/weekly meal plans based on calories, macros, and preferences.
+
+F. AI Grocery List
+Generate a shopping list from an AI meal plan.
+
+G. AI Nutrition Q&A
+Examples:
+- How can I increase my protein?
+- What are some high-fiber foods?
+- Give me a low-calorie breakfast.
+- What can I eat after a workout?
+
+H. Personalized AI Insights
+Generate summaries based on actual tracked nutrition and activity data.
+
+IMPORTANT: AI should provide general nutrition/wellness information and should not present itself as a doctor or provide diagnosis/treatment.
+
+19. PROFILE & SETTINGS
+Profile:
+- Name
+- Email
+- Profile photo
+- Personal information
+- Weight
+- Height
+- Goals
+
+Preferences:
+- Dietary preference
+- Allergies
+- Food preferences
+- Units
+- Calorie settings
+- Macro settings
+
+Settings:
+- Notifications
+- Privacy
+- Security
+- Connected devices
+- Subscription
+- Help
+- Terms
+- Privacy Policy
+- Delete account
+- Logout
+
+20. COMMUNITY / SOCIAL — OPTIONAL FUTURE
+- Challenges
+- Daily streaks
+- Achievements
+- Community posts
+- Friends
+- Leaderboards
+- Shared progress
+
+21. BOTTOM NAVIGATION
+Recommended:
+Home | Diary | Progress | Recipes | Profile
+
+AI can initially be accessed from:
+- Home "Ask AI"
+- Food logging
+- Recipe/meal screens
+
+A dedicated AI tab can be added later.
+
+22. PHASE 1 — MVP
+Build first:
+1. Authentication
+2. Onboarding
+3. User profile
+4. Calorie goal
+5. Macro goals
+6. Home dashboard
+7. Food search
+8. Food diary
+9. Meal tracking
+10. Manual food entry
+11. Favorite/recent foods
+12. Macro tracking
+13. Water tracking
+14. Exercise tracking
+15. Weight tracking
+16. Progress charts
+17. Basic recipes
+18. Notifications
+19. Basic rule-based insights
+20. Settings
+
+23. PHASE 2 — ADVANCED
+Add:
+1. Barcode scanner
+2. Custom foods
+3. Custom recipes
+4. Meal planner
+5. Shopping list
+6. Health/device integrations
+7. Advanced analytics
+8. Streaks
+9. Challenges
+10. Community features
+
+24. PHASE 3 — AI
+Add:
+1. AI Nutrition Coach
+2. AI food photo analysis
+3. Natural language food logging
+4. AI meal recommendations
+5. AI weekly meal planner
+6. AI grocery list generation
+7. AI nutrition Q&A
+8. Personalized AI insights
+9. AI recipe modifications
+10. AI-powered nutrition summaries
+
+25. AI-READY DATA ARCHITECTURE
+Store structured data from Phase 1.
+
+Users:
+- user_id
+- profile
+- age
+- height
+- weight
+- goals
+- activity level
+- dietary preferences
+- allergies
+
+Food:
+- food_id
+- name
+- brand
+- serving size
+- calories
+- protein
+- carbs
+- fat
+- fiber
+- sugar
+- sodium
+- micronutrients
+
+Meal:
+- meal_id
+- user_id
+- date
+- meal_type
+- food_items
+- quantities
+- nutrition totals
+
+Exercise:
+- exercise_id
+- user_id
+- exercise type
+- duration
+- intensity
+- calories burned
+- date
+
+Water:
+- user_id
+- date
+- amount
+
+Weight:
+- user_id
+- date
+- weight
+
+Recipes:
+- recipe_id
+- ingredients
+- nutrition
+- instructions
+- servings
+
+Goals:
+- calorie target
+- protein target
+- carb target
+- fat target
+- water target
+- target weight
+
+AI should consume structured nutrition data rather than relying only on chat history.
+
+26. UI/UX DIRECTION
+The app should feel:
+- Modern
+- Clean
+- Healthy
+- Premium
+- Easy to use
+- Data-driven but not overwhelming
+
+Prioritize:
+- Clear cards
+- Progress rings/bars
+- Nutrition charts
+- Large readable numbers
+- Quick actions
+- Simple food logging
+- Minimal steps for common actions
+
+Food logging should be extremely fast because it is one of the most frequently used actions.
+
+27. PRODUCT PRINCIPLES
+1. Food logging must be fast.
+2. Dashboard must show important daily information immediately.
+3. Users must be able to edit calculated values.
+4. AI-generated food/nutrition estimates must require confirmation before saving.
+5. Nutrition values must be stored structurally.
+6. AI should be modular and replaceable.
+7. The app must work without AI in Phase 1.
+8. AI should enhance tracking rather than replace the core tracking system.
+9. Health information must be presented responsibly.
+10. Avoid medical diagnosis/treatment claims.
+11. Privacy and user data security should be considered from the beginning.
+
+END OF REQUIREMENTS
