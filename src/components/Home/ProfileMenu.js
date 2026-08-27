@@ -22,6 +22,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useDiary } from '../../context/DiaryContext';
 import { colors, themeColors } from '../../config/colors';
 import { FONT, snPro } from '../../config/fonts';
+import AvatarInitial from '../common/AvatarInitial';
 
 const GOAL_LABEL = { lose: 'Lose weight', maintain: 'Maintain', gain: 'Gain muscle' };
 
@@ -58,9 +59,7 @@ export default function ProfileMenu({ visible, onClose, navigation }) {
           </View>
 
           <View style={[styles.profileCard, { backgroundColor: isDark ? '#1C1C1E' : colors.primarySoft, borderColor: c.border }]}>
-            <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-              <Text style={styles.avatarText}>{profile.name.slice(0, 1)}</Text>
-            </View>
+            <AvatarInitial name={profile.name} size={48} backgroundColor={colors.primary} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.name, { color: c.text }]}>{profile.name}</Text>
               <Text style={[styles.meta, { color: c.muted }]}>
@@ -185,14 +184,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 8,
   },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 99,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: { color: '#FFFFFF', fontWeight: '800', fontSize: 18 },
   name: { fontSize: 17, fontWeight: '800' },
   meta: { fontSize: 12, marginTop: 2 },
   menuItem: {

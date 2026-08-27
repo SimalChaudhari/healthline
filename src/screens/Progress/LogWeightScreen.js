@@ -43,7 +43,7 @@ export default function LogWeightScreen({ navigation }) {
             keyboardType="decimal-pad"
             style={[styles.input, { color: c.text, fontFamily: snPro('800') }]}
             placeholder="0.0"
-            placeholderTextColor={c.muted}
+            placeholderTextColor={c.placeholder}
           />
           <Text style={[styles.unit, { color: c.muted }]}>kg</Text>
         </View>

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Healthline Nutrition",
+    "name": "Health line Nutrition",
     "slug": "healthline",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,8 +15,8 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "Allow Healthline to use the camera to scan meals and food barcodes.",
-        "NSPhotoLibraryUsageDescription": "Allow Healthline to upload meal photos from your gallery for AI nutrition estimates."
+        "NSCameraUsageDescription": "Allow Health line to use the camera to scan meals and food barcodes.",
+        "NSPhotoLibraryUsageDescription": "Allow Health line to upload meal photos from your gallery for AI nutrition estimates."
       }
     },
     "android": {
@@ -43,15 +43,15 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow Healthline to use the camera to scan meals and food barcodes.",
-          "microphonePermission": "Allow Healthline to access your microphone for voice logging.",
+          "cameraPermission": "Allow Health line to use the camera to scan meals and food barcodes.",
+          "microphonePermission": "Allow Health line to access your microphone for voice logging.",
           "recordAudioAndroid": false
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow Healthline to upload meal photos from your gallery for AI nutrition estimates."
+          "photosPermission": "Allow Health line to upload meal photos from your gallery for AI nutrition estimates."
         }
       ]
     ]

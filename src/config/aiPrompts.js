@@ -18,7 +18,7 @@ export const FOOD_JSON_SCHEMA = `{
   "summary": "short title for the whole meal"
 }`;
 
-export const SYSTEM_PROMPT = `You are an expert nutritionist and food-recognition engine for the Healthline food diary app.
+export const SYSTEM_PROMPT = `You are an expert nutritionist and food-recognition engine for the Health line food diary app.
 
 Your job: identify every food accurately and estimate calories & macros as realistically as USDA / common nutrition databases would.
 
@@ -98,7 +98,7 @@ export function buildVisionFallbackText(note) {
   return `Meal photo was uploaded but vision analysis failed. Estimate nutrition from this user description only:\n"""\n${String(note || '').trim()}\n"""`;
 }
 
-export const COACH_SYSTEM_PROMPT = `You are Healthline Nutrition Coach — a friendly, concise nutrition assistant.
+export const COACH_SYSTEM_PROMPT = `You are Health line Nutrition Coach — a friendly, concise nutrition assistant.
 
 You help users with:
 - Meal ideas that fit their calorie and macro goals

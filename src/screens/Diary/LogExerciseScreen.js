@@ -111,12 +111,12 @@ export default function LogExerciseScreen({ navigation }) {
 function Field({ label, value, onChangeText, theme, isDark, placeholder, keyboardType }) {
   return (
     <View style={[styles.field, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
-      <Text style={[styles.fieldLbl, { color: theme.muted, fontFamily: snPro('600') }]}>{label}</Text>
+      <Text style={[styles.fieldLbl, { color: theme.text, fontFamily: snPro('600') }]}>{label}</Text>
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={theme.muted}
+        placeholderTextColor={theme.placeholder}
         keyboardType={keyboardType || 'default'}
         style={[styles.input, { color: theme.text, backgroundColor: isDark ? '#1C1C1E' : theme.chip, fontFamily: snPro('600') }]}
       />

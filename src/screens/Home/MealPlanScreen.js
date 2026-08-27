@@ -157,7 +157,7 @@ export default function MealPlanScreen({ navigation }) {
               value={form.name}
               onChangeText={(name) => setForm((f) => ({ ...f, name }))}
               placeholder="Meal name"
-              placeholderTextColor={c.muted}
+              placeholderTextColor={c.placeholder}
               style={[styles.input, { color: c.text, borderColor: c.border, backgroundColor: isDark ? '#1C1C1E' : '#F4F6F8' }]}
             />
             <View style={styles.macroRow}>
@@ -172,7 +172,7 @@ export default function MealPlanScreen({ navigation }) {
                   value={form[f.key]}
                   onChangeText={(v) => setForm((prev) => ({ ...prev, [f.key]: v }))}
                   placeholder={f.ph}
-                  placeholderTextColor={c.muted}
+                  placeholderTextColor={c.placeholder}
                   keyboardType="number-pad"
                   style={[
                     styles.macroInput,

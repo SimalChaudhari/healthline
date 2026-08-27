@@ -138,7 +138,7 @@ export default function CoachScreen({ navigation }) {
           value={draft}
           onChangeText={setDraft}
           placeholder="Ask about any food…"
-          placeholderTextColor={c.muted}
+          placeholderTextColor={c.placeholder}
           style={[styles.input, { color: c.text, fontFamily: snPro('400') }]}
           multiline={!isWeb}
           maxLength={500}

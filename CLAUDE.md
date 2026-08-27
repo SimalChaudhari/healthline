@@ -31,12 +31,12 @@ Local diary state only. Scan + voice can demo-log sample foods; wire models late
 
 ## Theme
 
-`useTheme()` — never hardcode light/dark:
+`useTheme()` — light/dark **and** brand color (`blue` | `green`):
 
-- page `#F4F6F8` / `#000000`
-- card `#FFFFFF` / `#141414`
-- brand blue `#0070E0`
-- AI purple `#6C5CE7`
+- Default brand: Healthline **blue** `#0070E0`
+- Optional: NutriZen **green** `#2ECC71` (More → Color theme)
+- Prefer `const { colors, themeColors: c, isDark } = useTheme()` so brand switches re-render
+- AI purple `#6C5CE7` (shared)
 
 ## Fonts
 

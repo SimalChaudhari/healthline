@@ -16,6 +16,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useDiary } from '../../context/DiaryContext';
 import AppButton from '../../components/common/AppButton';
 import AppInput from '../../components/common/AppInput';
+import AvatarInitial from '../../components/common/AvatarInitial';
+import BrandLogo from '../../components/common/BrandLogo';
 import { SafeAreaTop } from '../../components/common/ScreenShell';
 import { useSafeTop } from '../../utils/safeArea';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -31,21 +33,20 @@ import {
 } from '../../utils/validation';
 
 function AuthScaffold({ children, title, sub, onBack, footer }) {
-  const { isDark } = useTheme();
-  const c = themeColors(isDark);
+  const { isDark, colors, themeColors: c, primaryRgba } = useTheme();
   const topPad = useSafeTop();
   const insets = useSafeAreaInsets();
   const bottomPad = Math.max(insets.bottom, 16);
   const grad = isDark
     ? ['#0A0A0A', '#000000', '#000000']
-    : ['#E8F3FF', '#F7FAFD', '#FFFFFF'];
+    : [colors.primarySoft, '#F7FAFD', '#FFFFFF'];
 
   return (
     <View style={[styles.root, { backgroundColor: c.pageBg }]}>
       <LinearGradient colors={grad} locations={[0, 0.4, 1]} style={StyleSheet.absoluteFill} />
       <View
         pointerEvents="none"
-        style={[styles.blob, { backgroundColor: isDark ? 'rgba(0,112,224,0.14)' : 'rgba(0,112,224,0.08)' }]}
+        style={[styles.blob, { backgroundColor: isDark ? primaryRgba(0.14) : primaryRgba(0.08) }]}
       />
 
       <KeyboardAvoidingView
@@ -72,9 +73,7 @@ function AuthScaffold({ children, title, sub, onBack, footer }) {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <View style={styles.logo}>
-              <Text style={[styles.logoText, { fontFamily: snPro('800') }]}>H</Text>
-            </View>
+            <BrandLogo size={48} showName style={{ marginBottom: 16 }} />
             <Text style={[styles.title, { color: c.text, fontFamily: FONT.nova }]}>{title}</Text>
             {sub ? (
               <Text style={[styles.sub, { color: c.muted, fontFamily: snPro('400') }]}>{sub}</Text>
@@ -478,16 +477,6 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     flexGrow: 1,
   },
-  logo: {
-    width: 48,
-    height: 48,
-    borderRadius: 99,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  logoText: { color: '#FFFFFF', fontSize: 18 },
   title: {
     fontSize: 28,
     lineHeight: 34,

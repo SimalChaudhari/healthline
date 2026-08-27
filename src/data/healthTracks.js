@@ -1,11 +1,13 @@
 /** Health condition tracks — adapted from Nourish example. */
+import { APP_NAME } from '../config/brandContent';
+
 export const HEALTH_TRACKS = {
   PCOS: {
     id: 'PCOS',
     name: 'PCOS / PCOD',
     initials: 'PC',
     cycle: true,
-    sub: 'Insulin resistance sits behind most PCOS symptoms. Healthline builds plates that keep glucose flat and protein high.',
+    sub: `Insulin resistance sits behind most PCOS symptoms. ${APP_NAME} builds plates that keep glucose flat and protein high.`,
     symptoms: ['Fatigue', 'Bloating', 'Cravings', 'Acne', 'Hair fall', 'Mood dips', 'Cramps', 'Poor sleep'],
     eat: ['Protein at every meal', 'Leafy greens, berries', 'Whole grains over white', 'Omega-3: seeds, walnuts', 'Cinnamon, spearmint tea'],
     limit: ['Sugary drinks', 'Refined carbs alone', 'Long gaps between meals', 'Ultra-processed snacks'],

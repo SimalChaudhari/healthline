@@ -269,7 +269,7 @@ export default function ScanFoodScreen({ navigation, route }) {
                 onChangeText={setNote}
                 multiline
                 placeholder="Optional note (helps if vision fails)"
-                placeholderTextColor={c.muted}
+                placeholderTextColor={c.placeholder}
                 style={[
                   styles.noteInput,
                   {

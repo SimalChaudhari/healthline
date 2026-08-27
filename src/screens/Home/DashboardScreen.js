@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, Platform, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ScanLine, Mic, Search, Droplets, Flame, ChevronRight, Plus, Wheat, Beef, Droplet, Sparkles, CalendarDays, GraduationCap, HeartPulse } from 'lucide-react-native';
+import { ScanLine, Mic, Search, Droplets, Flame, ChevronRight, Plus, Wheat, Beef, Droplet, Sparkles, CalendarDays, GraduationCap, HeartPulse, UtensilsCrossed, Dumbbell, Coffee, Moon, Apple } from 'lucide-react-native';
 import ScreenShell from '../../components/common/ScreenShell';
 import ProgressRing from '../../components/common/ProgressRing';
 import ProfileMenu from '../../components/Home/ProfileMenu';
+import AvatarInitial from '../../components/common/AvatarInitial';
 import { useTheme } from '../../context/ThemeContext';
 import { useDiary } from '../../context/DiaryContext';
 import { colors, themeColors } from '../../config/colors';
@@ -16,15 +17,17 @@ export default function DashboardScreen({ navigation }) {
   const { width } = useWindowDimensions();
   const compact = width < 360;
   const ringSize = Math.min(184, Math.max(148, width - 100));
-  const { profile, totals, remaining, burned, water, addWater, addWaterAmount, dateKey, exercise } = useDiary();
+  const { profile, totals, remaining, burned, water, addWater, addWaterAmount, dateKey, exercise, meals } = useDiary();
   const eaten = totals.calories;
   const goal = profile.calories;
   const progress = Math.min(1, eaten / goal);
-  const pctEaten = Math.round(progress * 100);
   const waterPct = profile.waterGoal > 0 ? Math.min(100, Math.round((water / profile.waterGoal) * 100)) : 0;
   const waterAtGoal = water >= profile.waterGoal;
   const topExercise = exercise[0];
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const firstName = profile.name?.split(' ')[0] || 'Alex';
+  const greeting = timeGreeting();
 
   return (
     <ScreenShell>
@@ -33,24 +36,21 @@ export default function DashboardScreen({ navigation }) {
         <View style={styles.headerRow}>
           <View style={styles.headerText}>
             <Text style={[styles.hello, { color: c.muted }]} numberOfLines={1}>
-              Good day, {profile.name}
+              {greeting}, {firstName}
             </Text>
             <Text style={[styles.title, compact && styles.titleCompact, { color: c.text }]}>Today</Text>
             <Text style={[styles.date, { color: c.muted }]} numberOfLines={1}>
               {formatDate(dateKey)}
             </Text>
           </View>
-          <Pressable
+          <AvatarInitial
+            name={profile.name}
+            size={42}
+            backgroundColor={colors.primary}
             onPress={() => setMenuOpen(true)}
-            style={({ pressed }) => [
-              styles.avatar,
-              { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 },
-            ]}
-            accessibilityRole="button"
             accessibilityLabel="Open menu"
-          >
-            <Text style={styles.avatarText}>{profile.name.slice(0, 1)}</Text>
-          </Pressable>
+            style={{ flexShrink: 0 }}
+          />
         </View>
 
         <View style={[styles.heroCard, cardShadow, { borderColor: isDark ? c.border : 'rgba(0,112,224,0.14)' }]}>
@@ -71,11 +71,13 @@ export default function DashboardScreen({ navigation }) {
                 stroke={compact ? 10 : 12}
               >
                 <Text style={[styles.remainNum, compact && styles.remainNumCompact, { color: c.text }]}>
-                  {Math.max(0, remaining)}
+                  {eaten}
                 </Text>
-                <Text style={[styles.remainLbl, { color: c.muted }]}>cals remaining</Text>
+                <Text style={[styles.remainLbl, { color: c.muted }]}>/ {goal} kcal</Text>
                 <View style={[styles.pctPill, { backgroundColor: isDark ? '#1C1C1E' : colors.primarySoft }]}>
-                  <Text style={[styles.pctText, { color: colors.primary }]}>{pctEaten}% eaten</Text>
+                  <Text style={[styles.pctText, { color: colors.primary }]}>
+                    {Math.max(0, remaining)} left
+                  </Text>
                 </View>
               </ProgressRing>
             </View>
@@ -119,6 +121,68 @@ export default function DashboardScreen({ navigation }) {
               </View>
             </View>
           </LinearGradient>
+        </View>
+
+        <View style={styles.circleRow}>
+          <CircleAction
+            icon={UtensilsCrossed}
+            label="Add Food"
+            color={colors.primary}
+            theme={c}
+            onPress={() => navigation.navigate('AddFood', { meal: 'breakfast' })}
+          />
+          <CircleAction
+            icon={ScanLine}
+            label="Scan"
+            color={colors.aiPurple}
+            theme={c}
+            onPress={() => navigation.navigate('ScanFood', { meal: 'lunch' })}
+          />
+          <CircleAction
+            icon={Droplets}
+            label="Water"
+            color={colors.primary}
+            theme={c}
+            onPress={addWater}
+          />
+          <CircleAction
+            icon={Dumbbell}
+            label="Exercise"
+            color={colors.exercise}
+            theme={c}
+            onPress={() => navigation.navigate('LogExercise')}
+          />
+        </View>
+
+        <Text style={[styles.section, { color: c.text }]}>Today&apos;s meals</Text>
+        <View style={[styles.mealsCard, cardShadow, { backgroundColor: c.cardBg, borderColor: c.border }]}>
+          {MEAL_ROWS.map((row, i) => {
+            const items = meals[row.key] || [];
+            const cals = items.reduce((s, f) => s + (f.calories || 0), 0);
+            return (
+              <Pressable
+                key={row.key}
+                onPress={() => navigation.navigate('AddFood', { meal: row.key })}
+                style={[
+                  styles.mealRow,
+                  i < MEAL_ROWS.length - 1 && { borderBottomWidth: 1, borderBottomColor: c.border },
+                ]}
+              >
+                <View style={[styles.mealIconWrap, { backgroundColor: `${colors.primary}14` }]}>
+                  <row.Icon size={18} color={colors.primary} strokeWidth={2.2} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.mealName, { color: c.text, fontFamily: snPro('700') }]}>{row.label}</Text>
+                  <Text style={[styles.mealMeta, { color: c.muted }]}>
+                    {items.length ? `${items.length} item${items.length > 1 ? 's' : ''}` : 'Tap to add'}
+                  </Text>
+                </View>
+                <Text style={[styles.mealCals, { color: colors.primary, fontFamily: snPro('800') }]}>
+                  {cals} kcal
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
 
         <Text style={[styles.section, { color: c.text }]}>Quick log</Text>
@@ -332,6 +396,33 @@ function WaterGlass({ filled, isDark, track }) {
   );
 }
 
+function CircleAction({ icon: Icon, label, color, theme, onPress }) {
+  return (
+    <Pressable onPress={onPress} style={styles.circleAction}>
+      <View style={[styles.circleBtn, { backgroundColor: `${color}18`, borderColor: `${color}33` }]}>
+        <Icon size={22} color={color} strokeWidth={2.2} />
+      </View>
+      <Text style={[styles.circleLbl, { color: theme.text }]} numberOfLines={1}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+const MEAL_ROWS = [
+  { key: 'breakfast', label: 'Breakfast', Icon: Coffee },
+  { key: 'lunch', label: 'Lunch', Icon: UtensilsCrossed },
+  { key: 'dinner', label: 'Dinner', Icon: Moon },
+  { key: 'snacks', label: 'Snacks', Icon: Apple },
+];
+
+function timeGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
 function StatChip({ label, value, theme, isDark, accent }) {
   return (
     <View
@@ -468,15 +559,6 @@ const styles = StyleSheet.create({
   },
   titleCompact: { fontSize: 26 },
   date: { fontSize: 13, marginTop: 2 },
-  avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 99,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  avatarText: { color: '#FFFFFF', fontWeight: '800', fontSize: 16 },
   remainNumCompact: { fontSize: 30 },
   heroCard: {
     borderRadius: 22,
@@ -549,6 +631,45 @@ const styles = StyleSheet.create({
   macroFill: { height: 5, borderRadius: 99 },
   macroGoal: { fontSize: 10, marginTop: 4, fontWeight: '500' },
   section: { fontSize: 17, fontWeight: '800', marginBottom: 10, letterSpacing: -0.2 },
+  circleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 22,
+    gap: 8,
+  },
+  circleAction: { flex: 1, alignItems: 'center', gap: 8 },
+  circleBtn: {
+    width: 58,
+    height: 58,
+    borderRadius: 99,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  circleLbl: { fontSize: 11, fontWeight: '600', textAlign: 'center' },
+  mealsCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
+  mealRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    gap: 12,
+  },
+  mealIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mealName: { fontSize: 14 },
+  mealMeta: { fontSize: 12, marginTop: 2 },
+  mealCals: { fontSize: 13 },
   quickRow: { flexDirection: 'row', gap: 8, marginBottom: 14 },
   coachCard: {
     flexDirection: 'row',

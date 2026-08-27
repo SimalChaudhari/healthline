@@ -19,6 +19,8 @@ import LogWeightScreen from '../screens/Progress/LogWeightScreen';
 import LogExerciseScreen from '../screens/Diary/LogExerciseScreen';
 import RemindersScreen from '../screens/More/RemindersScreen';
 import ProfileEditScreen from '../screens/More/ProfileEditScreen';
+import PrivacyPolicyScreen from '../screens/More/PrivacyPolicyScreen';
+import AboutUsScreen from '../screens/More/AboutUsScreen';
 import FavoritesScreen from '../screens/Diary/FavoritesScreen';
 import BarcodeScanScreen from '../screens/Diary/BarcodeScanScreen';
 import WeeklyReportScreen from '../screens/Progress/WeeklyReportScreen';
@@ -29,6 +31,7 @@ import HealthTracksScreen from '../screens/Home/HealthTracksScreen';
 import HealthTrackDetailScreen from '../screens/Home/HealthTrackDetailScreen';
 import ProgramsScreen from '../screens/Home/ProgramsScreen';
 import ProgramDetailScreen from '../screens/Home/ProgramDetailScreen';
+import FeaturesHubScreen from '../screens/Home/FeaturesHubScreen';
 
 import { ONBOARD_KEY } from '../config/storageKeys';
 
@@ -109,6 +112,8 @@ export default function AppNavigator() {
       <Stack.Screen name="LogExercise" component={LogExerciseScreen} />
       <Stack.Screen name="Reminders" component={RemindersScreen} />
       <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
+      <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+      <Stack.Screen name="AboutUs" component={AboutUsScreen} />
       <Stack.Screen name="Favorites" component={FavoritesScreen} />
       <Stack.Screen name="BarcodeScan" component={BarcodeScanScreen} />
       <Stack.Screen name="WeeklyReport" component={WeeklyReportScreen} />
@@ -119,6 +124,7 @@ export default function AppNavigator() {
       <Stack.Screen name="HealthTrackDetail" component={HealthTrackDetailScreen} />
       <Stack.Screen name="Programs" component={ProgramsScreen} />
       <Stack.Screen name="ProgramDetail" component={ProgramDetailScreen} />
+      <Stack.Screen name="FeaturesHub" component={FeaturesHubScreen} />
     </Stack.Navigator>
   );
 }

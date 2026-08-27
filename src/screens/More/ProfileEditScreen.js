@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TextInput, Pressable, StyleSheet } from 'react-native';
 import ScreenShell from '../../components/common/ScreenShell';
 import ScreenHeader, { SaveButton } from '../../components/common/ScreenHeader';
+import AvatarInitial from '../../components/common/AvatarInitial';
 import { useTheme } from '../../context/ThemeContext';
 import { useDiary } from '../../context/DiaryContext';
 import { colors, themeColors } from '../../config/colors';
@@ -36,11 +37,7 @@ export default function ProfileEditScreen({ navigation }) {
       />
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.avatarWrap}>
-          <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-            <Text style={[styles.avatarText, { fontFamily: snPro('800') }]}>
-              {(name || profile.name).slice(0, 1).toUpperCase()}
-            </Text>
-          </View>
+          <AvatarInitial name={name || profile.name} size={72} backgroundColor={colors.primary} />
           <Text style={[styles.hint, { color: c.muted }]}>Avatar uses your first initial</Text>
         </View>
 
@@ -50,7 +47,7 @@ export default function ProfileEditScreen({ navigation }) {
           onChangeText={setName}
           style={[styles.input, { color: c.text, backgroundColor: c.cardBg, borderColor: c.border, fontFamily: snPro('600') }]}
           placeholder="Your name"
-          placeholderTextColor={c.muted}
+          placeholderTextColor={c.placeholder}
         />
 
         <Text style={[styles.section, { color: c.muted, fontFamily: snPro('800'), marginTop: 16 }]}>GOAL</Text>
@@ -88,14 +85,6 @@ export default function ProfileEditScreen({ navigation }) {
 const styles = StyleSheet.create({
   scroll: { padding: 20, paddingBottom: 40 },
   avatarWrap: { alignItems: 'center', marginBottom: 20 },
-  avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 99,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: { color: '#FFFFFF', fontSize: 28 },
   hint: { fontSize: 12, marginTop: 8 },
   section: { fontSize: 10, letterSpacing: 1, marginBottom: 10 },
   input: {

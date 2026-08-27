@@ -3,6 +3,7 @@ export const FOODS = [
     id: 'f1',
     name: 'Kirkland Greek Yogurt',
     brand: 'Kirkland',
+    barcode: 'DEMO-0001',
     serving: '1 cup (227g)',
     calories: 130,
     carbs: 8,
@@ -179,4 +180,12 @@ export function searchFoods(query) {
 
 export function getFoodById(id) {
   return FOODS.find((f) => f.id === id) || null;
+}
+
+/** Local-only barcode match (offline fallback). */
+export function getLocalFoodByBarcode(code) {
+  const raw = String(code || '').trim();
+  if (!raw) return null;
+  const direct = FOODS.find((f) => f.barcode === raw);
+  return direct ? { ...direct } : null;
 }

@@ -1,53 +1,159 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { View, Text, Pressable, StyleSheet, Platform, ActivityIndicator } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { X, Barcode, Check, Camera } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { X, Barcode, Camera, AlertCircle } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDiary } from '../../context/DiaryContext';
 import { useTheme } from '../../context/ThemeContext';
 import { colors, themeColors } from '../../config/colors';
 import { FONT, snPro } from '../../config/fonts';
 import CameraPermissionGate from '../../components/Diary/CameraPermissionGate';
-import { getFoodById } from '../../data/foods';
+import { lookupBarcode, scanBarcodeFromImageUri } from '../../services/barcodeService';
 import { SafeAreaTop } from '../../components/common/ScreenShell';
 import AppButton from '../../components/common/AppButton';
+
+function ScanErrorBanner({ message, onRetry, isDark }) {
+  if (!message) return null;
+  return (
+    <View
+      style={[
+        styles.errorBox,
+        {
+          backgroundColor: isDark ? 'rgba(0,0,0,0.45)' : `${colors.danger}10`,
+          borderColor: `${colors.danger}33`,
+        },
+      ]}
+    >
+      <Text style={[styles.errorText, { color: isDark ? '#FFFFFF' : colors.danger, fontFamily: snPro('600') }]}>
+        {message}
+      </Text>
+      <AppButton variant="ghost" ghostTone="primary" label="Try again" onPress={onRetry} />
+    </View>
+  );
+}
 
 export default function BarcodeScanScreen({ navigation, route }) {
   const meal = route.params?.meal || 'snacks';
   const { isDark } = useTheme();
   const c = themeColors(isDark);
-  const { addFood } = useDiary();
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState('back');
-  const [scanned, setScanned] = useState(false);
-  const [code, setCode] = useState(null);
-  const demo = getFoodById('f1');
+  const [lastCode, setLastCode] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const scannedRef = useRef(false);
 
-  const logDemo = () => {
-    if (demo) addFood(meal, demo);
-    navigation.navigate('Main', { screen: 'Diary' });
-  };
+  const clearError = useCallback(() => {
+    setError('');
+    setLastCode(null);
+    scannedRef.current = false;
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      scannedRef.current = false;
+      setLastCode(null);
+      setLoading(false);
+      setError('');
+    }, []),
+  );
+
+  const openFoodDetail = useCallback(
+    (food, barcode) => {
+      navigation.navigate('FoodDetail', {
+        id: food.id,
+        meal,
+        food,
+        barcode,
+      });
+    },
+    [meal, navigation],
+  );
+
+  const resolveBarcode = useCallback(
+    async (data, type = 'unknown') => {
+      if (scannedRef.current) return;
+      scannedRef.current = true;
+      setLastCode({ data, type });
+      setLoading(true);
+      setError('');
+
+      try {
+        const food = await lookupBarcode(data);
+        setLoading(false);
+        openFoodDetail(food, data);
+      } catch (e) {
+        setLoading(false);
+        setError(e?.message || 'Lookup failed');
+        scannedRef.current = false;
+      }
+    },
+    [openFoodDetail],
+  );
+
+  const pickBarcodeImage = useCallback(async () => {
+    try {
+      setError('');
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        setError('Gallery permission denied. Enable Photos access to upload a barcode image.');
+        return;
+      }
+
+      const picked = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 1,
+        allowsEditing: Platform.OS !== 'web',
+        aspect: [4, 1],
+      });
+
+      if (picked.canceled || !picked.assets?.[0]?.uri) return;
+
+      setLoading(true);
+      const scanned = await scanBarcodeFromImageUri(picked.assets[0].uri);
+      setLoading(false);
+      await resolveBarcode(scanned.data, scanned.type || 'image');
+    } catch (e) {
+      setLoading(false);
+      scannedRef.current = false;
+      setError(e?.message || 'Could not read barcode from photo');
+    }
+  }, [resolveBarcode]);
 
   const onBarcodeScanned = useCallback(
     ({ data, type }) => {
-      if (scanned) return;
-      setScanned(true);
-      setCode({ data, type });
+      resolveBarcode(data, type);
     },
-    [scanned],
+    [resolveBarcode],
   );
 
   if (!permission?.granted) {
     return (
-      <CameraPermissionGate
-        permission={permission}
-        requestPermission={requestPermission}
-        title="Camera for barcodes"
-        message="Allow camera access to scan product barcodes. Demo food will log after a successful scan."
-        onClose={() => navigation.goBack()}
-      />
+      <View style={{ flex: 1, backgroundColor: c.pageBg }}>
+        <CameraPermissionGate
+          permission={permission}
+          requestPermission={requestPermission}
+          title="Camera for barcodes"
+          message="Scan live with camera or upload a clear barcode photo — crop tight to the black bars, straight and in focus."
+          onClose={() => navigation.goBack()}
+          onUploadImage={pickBarcodeImage}
+          uploadLabel="Upload clear barcode photo"
+          uploadLoading={loading}
+          uploadHint="Tip: crop so only the barcode fills the frame — numbers below the bars should be visible."
+          footer={
+            <ScanErrorBanner message={error} onRetry={clearError} isDark={isDark} />
+          }
+        />
+      </View>
     );
   }
+
+  const centerMessage = loading
+    ? `Looking up ${lastCode?.data || 'product'}…`
+    : error
+      ? error
+      : 'Align barcode here';
 
   return (
     <View style={styles.root}>
@@ -57,7 +163,7 @@ export default function BarcodeScanScreen({ navigation, route }) {
         barcodeScannerSettings={{
           barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'qr'],
         }}
-        onBarcodeScanned={scanned ? undefined : onBarcodeScanned}
+        onBarcodeScanned={loading ? undefined : onBarcodeScanned}
       />
       <View style={styles.dim} pointerEvents="none" />
 
@@ -85,57 +191,42 @@ export default function BarcodeScanScreen({ navigation, route }) {
           Scan a barcode
         </Text>
         <Text style={[styles.sub, { color: isDark ? 'rgba(255,255,255,0.8)' : c.muted }]}>
-          Align a product barcode in the frame. Camera permission is required.
+          Point at any packaged food label — nutrition loads live after scan or upload.
         </Text>
 
         <View style={styles.finder}>
-          <View style={[styles.laser, scanned && styles.laserDone]} />
+          <View style={[styles.laser, loading && { backgroundColor: colors.primary }]} />
           <View style={[styles.corner, styles.tl]} />
           <View style={[styles.corner, styles.tr]} />
           <View style={[styles.corner, styles.bl]} />
           <View style={[styles.corner, styles.br]} />
           <View style={styles.center}>
-            {scanned ? <Check size={28} color={colors.accent} /> : <Barcode size={28} color="#F5C542" />}
-            <Text style={[styles.centerLbl, { fontFamily: snPro('600') }]}>
-              {scanned
-                ? `${demo?.name || 'Product'} · ${code?.data || 'code'}`
-                : 'Align barcode here'}
-            </Text>
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : error ? (
+              <AlertCircle size={28} color={colors.danger} />
+            ) : (
+              <Barcode size={28} color="#F5C542" />
+            )}
+            <Text style={[styles.centerLbl, { fontFamily: snPro('600') }]}>{centerMessage}</Text>
           </View>
         </View>
 
         <View style={styles.bottom}>
-          {!scanned ? (
-            <AppButton
-              variant="overlay"
-              label="Use demo barcode"
-              onPress={() => {
-                setScanned(true);
-                setCode({ data: 'DEMO-0001', type: 'manual' });
-              }}
-            />
-          ) : (
-            <AppButton
-              label={`Log ${demo?.name} · ${demo?.calories} kcal`}
-              onPress={logDemo}
-            />
-          )}
-          {scanned ? (
-            <AppButton
-              variant="ghost"
-              ghostTone="primary"
-              label="Scan again"
-              onPress={() => {
-                setScanned(false);
-                setCode(null);
-              }}
-              style={{ marginTop: 0 }}
-            />
+          {error ? (
+            <AppButton variant="overlay" label="Try again" onPress={clearError} />
           ) : null}
+          <AppButton
+            variant="overlay"
+            label="Upload clear barcode photo"
+            onPress={pickBarcodeImage}
+            loading={loading}
+            disabled={loading}
+          />
           <Text style={[styles.hint, { color: isDark ? 'rgba(255,255,255,0.5)' : c.muted }]}>
             {Platform.OS === 'web'
-              ? 'Browser may ask for camera permission.'
-              : 'Live camera · barcode types: EAN / UPC / Code128'}
+              ? 'Use a sharp photo · barcode centered · black bars clearly visible'
+              : 'Crop tight to barcode · straight · in focus · EAN / UPC packaged food'}
           </Text>
         </View>
       </SafeAreaView>
@@ -182,7 +273,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5C542',
     top: '48%',
   },
-  laserDone: { backgroundColor: colors.accent },
   corner: {
     position: 'absolute',
     width: 28,
@@ -199,9 +289,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 14,
+    maxWidth: '92%',
   },
-  centerLbl: { color: '#FFFFFF', marginTop: 10, fontSize: 13, textAlign: 'center' },
+  centerLbl: { color: '#FFFFFF', marginTop: 10, fontSize: 13, textAlign: 'center', lineHeight: 18 },
   bottom: { paddingBottom: 12, gap: 10 },
+  errorBox: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    gap: 4,
+    width: '100%',
+  },
+  errorText: { fontSize: 12, lineHeight: 17, textAlign: 'center' },
   hint: {
     fontSize: 12,
     textAlign: 'center',

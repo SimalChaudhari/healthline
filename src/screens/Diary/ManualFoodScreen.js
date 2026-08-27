@@ -100,7 +100,7 @@ function Field({ label, value, onChangeText, theme, placeholder, keyboardType, h
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder || ''}
-        placeholderTextColor={theme.muted}
+        placeholderTextColor={theme.placeholder}
         keyboardType={keyboardType || 'default'}
         style={[
           styles.input,

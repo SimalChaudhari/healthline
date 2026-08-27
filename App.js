@@ -8,33 +8,31 @@ import { AuthProvider } from './src/context/AuthContext';
 import { ConfirmProvider } from './src/context/ConfirmContext';
 import { FontProvider } from './src/config/FontProvider';
 import ThemedStatusBar from './src/components/common/ThemedStatusBar';
-import { themeColors } from './src/config/colors';
 import AppNavigator from './src/navigation/AppNavigator';
 
-function buildNavTheme(isDark) {
+function buildNavTheme(isDark, brandColors, surfaces) {
   const base = isDark ? DarkTheme : DefaultTheme;
   return {
     ...base,
     colors: {
       ...base.colors,
-      primary: '#0070E0',
-      background: isDark ? '#000000' : '#F4F6F8',
-      card: isDark ? '#000000' : '#FFFFFF',
-      text: isDark ? '#F3F4F6' : '#111827',
-      border: isDark ? '#2A2A2A' : '#E6E8EC',
+      primary: brandColors.primary,
+      background: surfaces.pageBg,
+      card: isDark ? '#000000' : surfaces.cardBg,
+      text: surfaces.text,
+      border: surfaces.border,
     },
   };
 }
 
 function AppContent() {
-  const { isDark } = useTheme();
-  const c = themeColors(isDark);
+  const { isDark, colors: brandColors, themeColors: c } = useTheme();
   return (
     <View style={{ flex: 1, backgroundColor: c.pageBg }}>
       <DiaryProvider>
         <AuthProvider>
           <ConfirmProvider>
-            <NavigationContainer theme={buildNavTheme(isDark)}>
+            <NavigationContainer theme={buildNavTheme(isDark, brandColors, c)}>
               <ThemedStatusBar />
               <AppNavigator />
             </NavigationContainer>

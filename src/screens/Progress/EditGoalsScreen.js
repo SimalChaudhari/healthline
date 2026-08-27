@@ -87,7 +87,7 @@ export default function EditGoalsScreen({ navigation }) {
 function Field({ label, value, onChangeText, suffix, theme, isDark }) {
   return (
     <View style={[styles.field, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
-      <Text style={[styles.fieldLbl, { color: theme.muted, fontFamily: snPro('600') }]}>{label}</Text>
+      <Text style={[styles.fieldLbl, { color: theme.text, fontFamily: snPro('600') }]}>{label}</Text>
       <View style={styles.fieldRow}>
         <TextInput
           value={value}

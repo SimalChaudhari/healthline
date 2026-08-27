@@ -77,14 +77,14 @@ export default function GroceryListScreen({ navigation }) {
               value={name}
               onChangeText={setName}
               placeholder="Item name"
-              placeholderTextColor={c.muted}
+              placeholderTextColor={c.placeholder}
               style={[styles.input, { color: c.text, borderColor: c.border, backgroundColor: isDark ? '#1C1C1E' : '#F4F6F8' }]}
             />
             <TextInput
               value={qty}
               onChangeText={setQty}
               placeholder="Qty"
-              placeholderTextColor={c.muted}
+              placeholderTextColor={c.placeholder}
               style={[styles.input, { color: c.text, borderColor: c.border, backgroundColor: isDark ? '#1C1C1E' : '#F4F6F8' }]}
             />
             <View style={styles.aisleRow}>
@@ -177,7 +177,7 @@ export default function GroceryListScreen({ navigation }) {
                       value={String(item.qty ?? '')}
                       onChangeText={(t) => updateGroceryItem(item.id, { qty: t })}
                       placeholder="Qty"
-                      placeholderTextColor={c.muted}
+                      placeholderTextColor={c.placeholder}
                       style={[styles.qtyInput, { color: c.muted }]}
                     />
                     <Pressable onPress={() => onRemove(item)} hitSlop={8} style={styles.trash}>

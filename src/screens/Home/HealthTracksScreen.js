@@ -6,7 +6,7 @@ import ScreenHeader from '../../components/common/ScreenHeader';
 import { useTheme } from '../../context/ThemeContext';
 import { colors, themeColors } from '../../config/colors';
 import { FONT, snPro } from '../../config/fonts';
-import { TRACK_LIST } from '../../data/healthTracks';
+import { APP_NAME } from '../../config/brandContent';
 
 export default function HealthTracksScreen({ navigation }) {
   const { isDark } = useTheme();
@@ -18,7 +18,7 @@ export default function HealthTracksScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={[styles.headline, { color: c.text, fontFamily: FONT.nova }]}>Health tracks</Text>
         <Text style={[styles.sub, { color: c.muted }]}>
-          Tell Healthline what you are managing. It changes your targets, warnings, and weekly check-ins.
+          Tell {APP_NAME} what you are managing. It changes your targets, warnings, and weekly check-ins.
         </Text>
 
         {TRACK_LIST.map((track) => (

@@ -169,7 +169,7 @@ export default function VoiceLogScreen({ navigation, route }) {
             onChangeText={setTranscript}
             multiline
             placeholder="e.g. Two eggs, toast with avocado, black coffee"
-            placeholderTextColor={c.muted}
+            placeholderTextColor={c.placeholder}
             style={[styles.input, { color: c.text, fontFamily: snPro('400') }]}
           />
           <Pressable

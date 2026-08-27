@@ -11,14 +11,16 @@ import {
   Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Check } from 'lucide-react-native';
-import { colors, themeColors } from '../../config/colors';
+import { Check, UtensilsCrossed, Target, HeartPulse, Salad } from 'lucide-react-native';
+import { colors } from '../../config/colors';
 import { FONT, snPro } from '../../config/fonts';
 import { useTheme } from '../../context/ThemeContext';
 import { useDiary } from '../../context/DiaryContext';
 import { useAuth } from '../../context/AuthContext';
 import AppButton from '../../components/common/AppButton';
 import AppInput from '../../components/common/AppInput';
+import AvatarInitial from '../../components/common/AvatarInitial';
+import { getBrandContent } from '../../config/brandContent';
 import { SafeAreaTop } from '../../components/common/ScreenShell';
 import { useSafeTop } from '../../utils/safeArea';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -106,13 +108,12 @@ function macrosFromCalories(cals, diaryGoal) {
   };
 }
 
-function softPrimary(isDark) {
-  return isDark ? 'rgba(0,112,224,0.18)' : colors.primarySoft;
+function softPrimary(isDark, brandColors, primaryRgba) {
+  return isDark ? primaryRgba(0.18) : brandColors.primarySoft;
 }
 
 export default function OnboardingScreen({ onDone, navigation, initialStep = 0 }) {
-  const { isDark } = useTheme();
-  const c = themeColors(isDark);
+  const { isDark, colors, themeColors: c, primaryRgba } = useTheme();
   const { setGoal, updateProfile, updateReminder } = useDiary();
   const { isSignedIn } = useAuth();
   const [step, setStep] = useState(initialStep);
@@ -262,13 +263,13 @@ export default function OnboardingScreen({ onDone, navigation, initialStep = 0 }
 
   const grad = isDark
     ? ['#0A0A0A', '#000000', '#000000']
-    : ['#E8F3FF', '#F7FAFD', '#FFFFFF'];
+    : [colors.primarySoft, '#F7FAFD', '#FFFFFF'];
 
   return (
     <View style={[styles.root, { backgroundColor: c.pageBg }]}>
       <LinearGradient colors={grad} locations={[0, 0.45, 1]} style={StyleSheet.absoluteFill} />
-      <View style={[styles.blobA, { backgroundColor: isDark ? 'rgba(0,112,224,0.16)' : 'rgba(0,112,224,0.10)' }]} />
-      <View style={[styles.blobB, { backgroundColor: isDark ? 'rgba(0,182,122,0.10)' : 'rgba(0,182,122,0.08)' }]} />
+      <View style={[styles.blobA, { backgroundColor: isDark ? primaryRgba(0.16) : primaryRgba(0.1) }]} />
+      <View style={[styles.blobB, { backgroundColor: isDark ? `${colors.accent}1A` : `${colors.accent}14` }]} />
 
       <View style={[styles.safe, { paddingBottom: bottomPad }]}>
         <SafeAreaTop color="transparent" />
@@ -400,6 +401,7 @@ export default function OnboardingScreen({ onDone, navigation, initialStep = 0 }
 }
 
 function OnboardHeader({ step, onBack, theme }) {
+  const { colors } = useTheme();
   const pct = `${(step / 4) * 100}%`;
   return (
     <View style={styles.obHead}>
@@ -407,50 +409,88 @@ function OnboardHeader({ step, onBack, theme }) {
         <Pressable onPress={onBack} hitSlop={8}>
           <Text style={[styles.backLbl, { color: theme.muted, fontFamily: snPro('600') }]}>← Back</Text>
         </Pressable>
-        <Text style={[styles.stepLbl, { fontFamily: snPro('800') }]}>STEP {step} OF 4</Text>
+        <Text style={[styles.stepLbl, { color: colors.primary, fontFamily: snPro('800') }]}>
+          STEP {step} OF 4
+        </Text>
       </View>
       <View style={[styles.progressTrack, { backgroundColor: theme.track }]}>
-        <View style={[styles.progressFill, { width: pct }]} />
+        <View style={[styles.progressFill, { width: pct, backgroundColor: colors.primary }]} />
       </View>
     </View>
   );
 }
 
 function GetStartedStep({ theme }) {
+  const { colors, brand, primaryRgba, isDark } = useTheme();
+  const content = getBrandContent(brand);
+  const featureIcons = { meals: UtensilsCrossed, goals: Target, health: HeartPulse };
+
   return (
     <ScrollView
       style={styles.flex}
       contentContainerStyle={styles.getStartScroll}
       showsVerticalScrollIndicator={false}
     >
-      <View style={styles.startLogo}>
-        <Text style={[styles.startLogoText, { fontFamily: snPro('800') }]}>H</Text>
+      <BrandLogo size={56} showName />
+        <View style={[styles.heroFood, {
+            backgroundColor: isDark ? primaryRgba(0.12) : colors.primarySoft,
+            borderColor: isDark ? primaryRgba(0.25) : primaryRgba(0.15),
+          },
+        ]}>
+        <View style={[styles.heroIconWrap, { backgroundColor: isDark ? primaryRgba(0.2) : '#FFFFFF' }]}>
+          <Salad size={36} color={colors.primary} strokeWidth={2} />
+        </View>
+        <Text style={[styles.heroFoodLbl, { color: colors.primary, fontFamily: snPro('700') }]}>
+          Fresh & balanced
+        </Text>
       </View>
       <Text style={[styles.startTitle, { color: theme.text, fontFamily: FONT.nova }]}>
-        Eat well without{'\n'}doing the maths.
+        {content.welcomeTitle}
       </Text>
       <Text style={[styles.startSub, { color: theme.muted, fontFamily: snPro('400') }]}>
-        Snap a photo and Healthline reads the plate — calories, macros, allergens. Then it plans,
-        shops and nudges around your life.
+        {content.welcomeSub}
       </Text>
-      <View style={styles.bulletList}>
-        {START_BULLETS.map((line) => (
-          <View key={line} style={styles.bulletRow}>
-            <View style={styles.bulletDot} />
-            <Text style={[styles.bulletText, { color: theme.text, fontFamily: snPro('500') }]}>{line}</Text>
-          </View>
-        ))}
+      <View style={styles.featureCards}>
+        {content.onboardFeatures.map((f) => {
+          const Icon = featureIcons[f.id] || UtensilsCrossed;
+          return (
+            <View
+              key={f.id}
+              style={[
+                styles.featureCard,
+                {
+                  backgroundColor: isDark ? '#141414' : theme.cardBg,
+                  borderColor: theme.border,
+                },
+              ]}
+            >
+              <View style={[styles.featureIcon, { backgroundColor: isDark ? primaryRgba(0.2) : colors.primarySoft }]}>
+                <Icon size={18} color={colors.primary} strokeWidth={2.2} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.featureTitle, { color: theme.text, fontFamily: snPro('700') }]}>
+                  {f.title}
+                </Text>
+                <Text style={[styles.featureSub, { color: theme.muted, fontFamily: snPro('400') }]}>
+                  {f.sub}
+                </Text>
+              </View>
+            </View>
+          );
+        })}
       </View>
     </ScrollView>
   );
 }
 
 function GoalsStep({ focus, setFocus, theme, isDark }) {
-  const soft = softPrimary(isDark);
+  const { colors, primaryRgba, brand } = useTheme();
+  const { appName } = getBrandContent(brand);
+  const soft = softPrimary(isDark, colors, primaryRgba);
   return (
     <View>
       <Text style={[styles.h1, { color: theme.text, fontFamily: FONT.nova }]}>
-        What should Healthline help you with?
+        What should {appName} help you with?
       </Text>
       <Text style={[styles.sub, { color: theme.muted, fontFamily: snPro('400') }]}>
         Pick as many as you like — it shapes your targets and what the coach nudges you about.
@@ -522,7 +562,9 @@ function BodyStep({
   theme,
   isDark,
 }) {
-  const soft = softPrimary(isDark);
+  const { colors, primaryRgba, brand } = useTheme();
+  const { appName } = getBrandContent(brand);
+  const soft = softPrimary(isDark, colors, primaryRgba);
   return (
     <View>
       <Text style={[styles.h1, { color: theme.text, fontFamily: FONT.nova }]}>A little about you</Text>
@@ -680,11 +722,13 @@ function BodyStep({
           styles.suggestBox,
           {
             backgroundColor: soft,
-            borderColor: isDark ? 'rgba(0,112,224,0.35)' : 'rgba(0,112,224,0.2)',
+            borderColor: isDark ? primaryRgba(0.35) : primaryRgba(0.2),
           },
         ]}
       >
-        <Text style={[styles.suggestLbl, { fontFamily: snPro('600') }]}>Healthline suggests</Text>
+        <Text style={[styles.suggestLbl, { color: colors.primary, fontFamily: snPro('600') }]}>
+          {appName} suggests
+        </Text>
         <View style={styles.suggestRow}>
           <Text style={[styles.suggestNum, { color: theme.text, fontFamily: FONT.nova }]}>
             {suggestedCals}
@@ -718,7 +762,7 @@ function FieldCard({ label, value, onChangeText, onBlur, keyboardType, suffix, l
           },
         ]}
       >
-        <Text style={[styles.fieldLbl, { color: theme.muted, fontFamily: snPro('600') }]}>{label}</Text>
+        <Text style={[styles.fieldLbl, { color: theme.text, fontFamily: snPro('600') }]}>{label}</Text>
         <View style={[styles.fieldValueRow, large && styles.fieldValueRowLarge]}>
           <Text
             style={[styles.fieldInput, styles.fieldMeasure, { color: theme.text, fontFamily: FONT.nova }]}
@@ -734,7 +778,7 @@ function FieldCard({ label, value, onChangeText, onBlur, keyboardType, suffix, l
             onChangeText={onChangeText}
             onBlur={onBlur}
             keyboardType={keyboardType || 'default'}
-            placeholderTextColor={theme.muted}
+            placeholderTextColor={theme.placeholder}
             underlineColorAndroid="transparent"
             selectionColor={colors.primary}
             style={[
@@ -760,7 +804,9 @@ function FieldCard({ label, value, onChangeText, onBlur, keyboardType, suffix, l
 }
 
 function AllergiesStep({ diet, setDiet, allergies, setAllergies, conditions, setConditions, toggleMap, theme, isDark }) {
-  const soft = softPrimary(isDark);
+  const { colors, primaryRgba, brand } = useTheme();
+  const { appName } = getBrandContent(brand);
+  const soft = softPrimary(isDark, colors, primaryRgba);
   const renderPills = (items, selected, setter) =>
     items.map((a) => {
       const on = !!selected[a];
@@ -792,7 +838,7 @@ function AllergiesStep({ diet, setDiet, allergies, setAllergies, conditions, set
     <View>
       <Text style={[styles.h1, { color: theme.text, fontFamily: FONT.nova }]}>Anything to avoid?</Text>
       <Text style={[styles.sub, { color: theme.muted, fontFamily: snPro('400') }]}>
-        Healthline will flag these in every scan, recipe and grocery list — for you and anyone you cook for.
+        {appName} will flag these in every scan, recipe and grocery list — for you and anyone you cook for.
       </Text>
 
       <Text style={[styles.chipSection, styles.chipSectionFirst, { color: theme.muted, fontFamily: snPro('800') }]}>
@@ -814,10 +860,12 @@ function AllergiesStep({ diet, setDiet, allergies, setAllergies, conditions, set
 }
 
 function NotifsStep({ notifs, setNotifs, theme, isDark }) {
+  const { brand } = useTheme();
+  const { appName } = getBrandContent(brand);
   return (
     <View>
       <Text style={[styles.h1, { color: theme.text, fontFamily: FONT.nova }]}>
-        When should Healthline speak up?
+        When should {appName} speak up?
       </Text>
       <Text style={[styles.sub, { color: theme.muted, fontFamily: snPro('400') }]}>
         Nudges are capped at three a day and never during quiet hours.
@@ -891,18 +939,44 @@ const styles = StyleSheet.create({
     height: 180,
     borderRadius: 90,
   },
-  getStartScroll: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 20 },
-  startLogo: {
-    width: 52,
-    height: 52,
-    borderRadius: 18,
-    backgroundColor: colors.primary,
+  getStartScroll: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 20 },
+  heroFood: {
+    marginTop: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    height: 140,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  heroIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  startLogoText: { color: '#FFFFFF', fontSize: 22 },
+  heroFoodLbl: { fontSize: 13 },
+  featureCards: { marginTop: 22, gap: 10 },
+  featureCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  featureIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  featureTitle: { fontSize: 14 },
+  featureSub: { fontSize: 12, marginTop: 2, lineHeight: 17 },
   startTitle: {
-    marginTop: 28,
+    marginTop: 22,
     fontSize: 34,
     lineHeight: 40,
     letterSpacing: -0.8,
@@ -910,7 +984,7 @@ const styles = StyleSheet.create({
   startSub: { marginTop: 14, fontSize: 15, lineHeight: 24 },
   bulletList: { marginTop: 28, gap: 14 },
   bulletRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  bulletDot: { width: 7, height: 7, borderRadius: 99, backgroundColor: colors.primary },
+  bulletDot: { width: 7, height: 7, borderRadius: 99 },
   bulletText: { flex: 1, fontSize: 14, lineHeight: 20 },
   accountLink: { alignItems: 'center', paddingTop: 14, paddingBottom: 4 },
   accountText: { fontSize: 14 },
@@ -921,14 +995,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backLbl: { fontSize: 14 },
-  stepLbl: { fontSize: 11, letterSpacing: 1, color: colors.primary },
+  stepLbl: { fontSize: 11, letterSpacing: 1 },
   progressTrack: {
     marginTop: 12,
     height: 3,
     borderRadius: 99,
     overflow: 'hidden',
   },
-  progressFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 99 },
+  progressFill: { height: '100%', borderRadius: 99 },
   scroll: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 24 },
   h1: { fontSize: 28, lineHeight: 34, letterSpacing: -0.6 },
   sub: { marginTop: 8, fontSize: 14, lineHeight: 21, marginBottom: 18 },
@@ -1022,7 +1096,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
   },
-  suggestLbl: { fontSize: 12, color: colors.primary },
+  suggestLbl: { fontSize: 12 },
   suggestRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 6 },
   suggestNum: { fontSize: 30 },
   suggestUnit: { fontSize: 12 },

@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -23,6 +24,7 @@ import { themeColors, colors } from '../../config/colors';
 import { FONT, snPro } from '../../config/fonts';
 import MacroBar from '../../components/common/MacroBar';
 import MacroPieChart from '../../components/common/MacroPieChart';
+import AvatarInitial from '../../components/common/AvatarInitial';
 import { getFoodById } from '../../data/foods';
 import { SafeAreaTop } from '../../components/common/ScreenShell';
 import AppButton from '../../components/common/AppButton';
@@ -39,7 +41,7 @@ const cardShadow = Platform.select({
 });
 
 export default function FoodDetailScreen({ navigation, route }) {
-  const { id, meal = 'breakfast', food: passedFood } = route.params || {};
+  const { id, meal = 'breakfast', food: passedFood, barcode } = route.params || {};
   const { isDark } = useTheme();
   const c = themeColors(isDark);
   const { addFood, profile, favorites, toggleFavorite, customFoods } = useDiary();
@@ -68,7 +70,6 @@ export default function FoodDetailScreen({ navigation, route }) {
   }
 
   const isFav = favorites?.includes(food.id);
-  const initial = food.name.slice(0, 1).toUpperCase();
 
   const adjust = (delta) => {
     setServings((s) => Math.min(10, Math.max(1, s + delta)));
@@ -112,15 +113,24 @@ export default function FoodDetailScreen({ navigation, route }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.heroTop}>
-          <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-            <Text style={[styles.avatarText, { fontFamily: snPro('800') }]}>{initial}</Text>
+        {food.imageUrl ? (
+          <View style={[styles.productImageWrap, { borderColor: c.border, backgroundColor: c.chip }]}>
+            <Image source={{ uri: food.imageUrl }} style={styles.productImage} resizeMode="contain" />
           </View>
+        ) : null}
+        <View style={styles.heroTop}>
+          <AvatarInitial name={food.name} size={56} backgroundColor={colors.primary} style={{ marginRight: 12 }} />
           <View style={{ flex: 1 }}>
             <Text style={[styles.name, { color: c.text, fontFamily: FONT.nova }]}>{food.name}</Text>
             <Text style={[styles.brand, { color: c.muted, fontFamily: snPro('500') }]}>
               {food.brand} · {food.serving}
             </Text>
+            {barcode || food.barcode ? (
+              <Text style={[styles.barcodeLine, { color: c.muted, fontFamily: snPro('500') }]}>
+                Barcode {barcode || food.barcode}
+                {food.source === 'openfoodfacts' ? ' · Open Food Facts' : ''}
+              </Text>
+            ) : null}
           </View>
         </View>
 
@@ -244,23 +254,26 @@ const styles = StyleSheet.create({
   },
   headTitle: { fontSize: 15 },
   scroll: { paddingHorizontal: 20, paddingBottom: 20 },
+  productImageWrap: {
+    marginTop: 8,
+    marginBottom: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    height: 160,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  productImage: { width: '100%', height: '100%' },
   heroTop: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
     marginBottom: 12,
   },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  avatarText: { color: '#FFFFFF', fontSize: 24 },
   name: { fontSize: 26, lineHeight: 30 },
   brand: { fontSize: 13, marginTop: 4 },
+  barcodeLine: { fontSize: 11, marginTop: 4 },
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 },
   tag: {
     borderRadius: 99,

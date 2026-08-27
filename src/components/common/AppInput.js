@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, Platform } from 'react-native';
 import { Eye, EyeOff, CircleAlert, Check, X } from 'lucide-react-native';
 import { useTheme } from '../../context/ThemeContext';
-import { colors, themeColors } from '../../config/colors';
+import { colors } from '../../config/colors';
 import { snPro } from '../../config/fonts';
 import {
   passwordRules,
@@ -11,7 +11,7 @@ import {
   passwordStrengthColor,
 } from '../../utils/validation';
 
-function webAutofillStyle(fill, textColor) {
+function webAutofillStyle(fill) {
   if (Platform.OS !== 'web') return null;
   return {
     outlineStyle: 'none',
@@ -19,8 +19,6 @@ function webAutofillStyle(fill, textColor) {
     outlineColor: 'transparent',
     backgroundColor: fill,
     boxShadow: `0 0 0px 1000px ${fill} inset`,
-    WebkitTextFillColor: textColor,
-    caretColor: textColor,
   };
 }
 
@@ -47,11 +45,11 @@ export default function AppInput({
   inputStyle,
   ...rest
 }) {
-  const { isDark } = useTheme();
-  const c = themeColors(isDark);
+  const { isDark, themeColors: c } = useTheme();
   const [focused, setFocused] = useState(false);
   const [show, setShow] = useState(false);
   const fill = isDark ? '#1C1C1E' : '#F4F6F8';
+  const placeholderColor = c.placeholder || c.muted;
   const hasError = !!error;
   const borderColor = hasError ? colors.danger : focused ? colors.primary : c.border;
   const showMeter = showStrength && secure;
@@ -64,7 +62,7 @@ export default function AppInput({
   return (
     <View style={[styles.wrap, style]}>
       {label ? (
-        <Text style={[styles.label, { color: c.muted, fontFamily: snPro('600') }]}>{label}</Text>
+        <Text style={[styles.label, { color: c.text, fontFamily: snPro('600') }]}>{label}</Text>
       ) : null}
 
       <View style={[styles.box, { backgroundColor: fill, borderColor }]}>
@@ -72,7 +70,7 @@ export default function AppInput({
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={c.muted}
+          placeholderTextColor={placeholderColor}
           secureTextEntry={secure && !show}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
@@ -93,7 +91,7 @@ export default function AppInput({
           style={[
             styles.input,
             { color: c.text, fontFamily: snPro('600'), backgroundColor: fill },
-            webAutofillStyle(fill, c.text),
+            webAutofillStyle(fill),
             inputStyle,
           ]}
           {...rest}

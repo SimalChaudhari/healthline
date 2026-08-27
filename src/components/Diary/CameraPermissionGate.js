@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
-import { Camera, ChevronLeft } from 'lucide-react-native';
+import { Camera, ChevronLeft, ImageUp } from 'lucide-react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { colors, themeColors } from '../../config/colors';
 import { FONT, snPro } from '../../config/fonts';
@@ -14,6 +14,11 @@ export default function CameraPermissionGate({
   title = 'Camera access needed',
   message = 'Allow camera access to scan food and barcodes.',
   onClose,
+  onUploadImage,
+  uploadLabel = 'Upload barcode photo',
+  uploadHint,
+  uploadLoading = false,
+  footer,
 }) {
   const { isDark } = useTheme();
   const c = themeColors(isDark);
@@ -59,12 +64,27 @@ export default function CameraPermissionGate({
         <Text style={[styles.title, { color: c.text, fontFamily: FONT.nova }]}>{title}</Text>
         <Text style={[styles.msg, { color: c.muted, fontFamily: snPro('400') }]}>{message}</Text>
         <AppButton label="Allow camera" onPress={requestPermission} minWidth={200} />
+        {onUploadImage ? (
+          <AppButton
+            variant="secondary"
+            label={uploadLabel}
+            onPress={onUploadImage}
+            loading={uploadLoading}
+            minWidth={200}
+            icon={ImageUp}
+            style={{ marginTop: 10 }}
+          />
+        ) : null}
+        {uploadHint ? (
+          <Text style={[styles.uploadHint, { color: c.muted, fontFamily: snPro('400') }]}>{uploadHint}</Text>
+        ) : null}
         {onClose ? (
           <AppButton variant="ghost" label="Not now" onPress={onClose} />
         ) : null}
+        {footer ? <View style={styles.footer}>{footer}</View> : null}
         {!permission.canAskAgain ? (
           <Text style={[styles.hint, { color: c.muted }]}>
-            Permission blocked. Open phone Settings → Apps → Healthline → Permissions → Camera.
+            Permission blocked. Open phone Settings → Apps → Health line → Permissions → Camera.
           </Text>
         ) : null}
       </View>
@@ -117,5 +137,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
     lineHeight: 18,
+  },
+  uploadHint: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 10,
+    lineHeight: 18,
+    maxWidth: 300,
+  },
+  footer: {
+    width: '100%',
+    marginTop: 20,
   },
 });

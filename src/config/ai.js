@@ -12,7 +12,7 @@ export const AI_CONFIG = {
   /** Extra vision fallback if primary is rate-limited / unavailable */
   visionFallbacks: ['openrouter/free'],
   baseUrl: process.env.EXPO_PUBLIC_OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1',
-  appTitle: 'Healthline Nutrition',
+  appTitle: 'Health line Nutrition',
   appReferer: 'https://healthline.local',
 };
 

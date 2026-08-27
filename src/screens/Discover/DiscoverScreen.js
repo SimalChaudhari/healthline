@@ -99,7 +99,7 @@ export default function DiscoverScreen({ navigation }) {
             value={query}
             onChangeText={setQuery}
             placeholder="Search recipes or tags…"
-            placeholderTextColor={c.muted}
+            placeholderTextColor={c.placeholder}
             style={[styles.searchInput, { color: c.text, fontFamily: snPro('400') }]}
           />
           {query.length > 0 ? (

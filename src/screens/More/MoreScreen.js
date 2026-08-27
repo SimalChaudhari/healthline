@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -36,16 +36,21 @@ import {
   GraduationCap,
   RotateCcw,
   LogOut,
+  Palette,
+  Settings2,
+  Zap,
+  LifeBuoy,
 } from 'lucide-react-native';
 import ScreenShell from '../../components/common/ScreenShell';
+import SettingsSheetModal from '../../components/common/SettingsSheetModal';
+import AvatarInitial from '../../components/common/AvatarInitial';
 import { useTheme } from '../../context/ThemeContext';
 import { useDiary } from '../../context/DiaryContext';
 import { useAuth } from '../../context/AuthContext';
 import { useConfirm } from '../../context/ConfirmContext';
-import { colors, themeColors } from '../../config/colors';
 import { FONT, snPro } from '../../config/fonts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ONBOARD_KEY } from '../../config/storageKeys';
+import { APP_NAME, APP_FULL_NAME } from '../../config/brandContent';
 
 const GOAL_LABEL = { lose: 'Lose weight', maintain: 'Maintain', gain: 'Gain muscle' };
 
@@ -60,15 +65,79 @@ const cardShadow = Platform.select({
   default: {},
 });
 
+const MENU_SECTIONS = [
+  {
+    id: 'plan',
+    title: 'Plan & coach',
+    subtitle: 'Meal plan, grocery, AI coach & programs',
+    icon: CalendarDays,
+  },
+  {
+    id: 'links',
+    title: 'Quick links',
+    subtitle: 'Recipes, favorites, barcode & reports',
+    icon: Compass,
+  },
+  {
+    id: 'health',
+    title: 'Goals & health',
+    subtitle: 'Profile, macros, weight & activity',
+    icon: HeartPulse,
+  },
+  {
+    id: 'prefs',
+    title: 'Preferences',
+    subtitle: 'Theme, reminders & AI logging tools',
+    icon: Settings2,
+  },
+  {
+    id: 'account',
+    title: 'Account',
+    subtitle: 'Profile & sign out',
+    icon: User,
+  },
+  {
+    id: 'about',
+    title: 'About',
+    subtitle: 'Privacy & app information',
+    icon: LifeBuoy,
+  },
+  {
+    id: 'testing',
+    title: 'Testing',
+    subtitle: 'Reset profile for demo',
+    icon: RotateCcw,
+  },
+];
+
 export default function MoreScreen({ navigation }) {
-  const { isDark, toggleTheme } = useTheme();
-  const c = themeColors(isDark);
+  const {
+    isDark,
+    toggleTheme,
+    colors,
+    themeColors: c,
+    brand,
+    brandOptions,
+    setBrand,
+    primaryRgba,
+  } = useTheme();
   const { profile, goal, water, totals, resetForTesting } = useDiary();
   const { user, signOut, clearAuthForTesting } = useAuth();
   const { confirm } = useConfirm();
+  const [openMenu, setOpenMenu] = useState(null);
 
-  const goTab = (tab) => navigation.navigate(tab);
-  const goStack = (screen, params) => navigation.navigate(screen, params);
+  const brandOpt = brandOptions.find((b) => b.id === brand);
+  const brandHint = brandOpt?.hint || 'Blue';
+  const activeSection = MENU_SECTIONS.find((s) => s.id === openMenu);
+
+  const goTab = (tab) => {
+    setOpenMenu(null);
+    navigation.navigate(tab);
+  };
+  const goStack = (screen, params) => {
+    setOpenMenu(null);
+    navigation.navigate(screen, params);
+  };
 
   const rootNav = () =>
     navigation.getParent()?.getParent?.() || navigation.getParent?.() || navigation;
@@ -82,6 +151,7 @@ export default function MoreScreen({ navigation }) {
       destructive: false,
     });
     if (!ok) return;
+    setOpenMenu(null);
     await signOut();
     rootNav().reset({
       index: 0,
@@ -104,6 +174,7 @@ export default function MoreScreen({ navigation }) {
     } catch {
       // continue even if storage fails
     }
+    setOpenMenu(null);
     resetForTesting();
     await clearAuthForTesting();
     rootNav().reset({
@@ -112,29 +183,261 @@ export default function MoreScreen({ navigation }) {
     });
   };
 
+  const renderMenuContent = () => {
+    switch (openMenu) {
+      case 'plan':
+        return (
+          <View style={styles.linkGrid}>
+            <QuickLink icon={CalendarDays} label="Meal plan" color={colors.primary} theme={c} isDark={isDark} onPress={() => goStack('MealPlan')} />
+            <QuickLink icon={ShoppingBag} label="Grocery" color={colors.accent} theme={c} isDark={isDark} onPress={() => goStack('GroceryList')} />
+            <QuickLink icon={MessageCircle} label="AI coach" color={colors.aiPurple} theme={c} isDark={isDark} onPress={() => goStack('Coach')} />
+            <QuickLink icon={GraduationCap} label="Programs" color={colors.exercise} theme={c} isDark={isDark} onPress={() => goStack('Programs')} />
+          </View>
+        );
+
+      case 'links':
+        return (
+          <View style={styles.linkGrid}>
+            <QuickLink icon={Zap} label="All features" color={colors.aiPurple} theme={c} isDark={isDark} onPress={() => goStack('FeaturesHub')} />
+            <QuickLink icon={Compass} label="Recipes" color={colors.primary} theme={c} isDark={isDark} onPress={() => goTab('Discover')} />
+            <QuickLink icon={Heart} label="Favorites" color={colors.danger} theme={c} isDark={isDark} onPress={() => goStack('Favorites')} />
+            <QuickLink icon={Barcode} label="Barcode" color={colors.primary} theme={c} isDark={isDark} onPress={() => goStack('BarcodeScan', { meal: 'snacks' })} />
+            <QuickLink icon={ChartLine} label="Report" color={colors.exercise} theme={c} isDark={isDark} onPress={() => goStack('WeeklyReport')} />
+          </View>
+        );
+
+      case 'health':
+        return (
+          <>
+            <SettingsRow
+              icon={HeartPulse}
+              iconBg={`${colors.aiPurple}22`}
+              iconColor={colors.aiPurple}
+              title="Health tracks"
+              subtitle="PCOS, thyroid, blood sugar, blood pressure"
+              theme={c}
+              isDark={isDark}
+              onPress={() => goStack('HealthTracks')}
+            />
+            <SettingsRow
+              icon={User}
+              iconBg={colors.primarySoft}
+              title="Edit profile"
+              subtitle={`${profile.name} · ${GOAL_LABEL[goal]}`}
+              theme={c}
+              isDark={isDark}
+              onPress={() => goStack('ProfileEdit')}
+            />
+            <SettingsRow
+              icon={Target}
+              iconBg={colors.primarySoft}
+              title="Nutrition goals"
+              subtitle={`${profile.protein}g protein · ${profile.carbs}g carbs · ${profile.fat}g fat`}
+              theme={c}
+              isDark={isDark}
+              onPress={() => goStack('EditGoals')}
+            />
+            <SettingsRow
+              icon={Scale}
+              iconBg={`${colors.accent}22`}
+              iconColor={colors.accent}
+              title="Log weight"
+              subtitle={`Current ${profile.weight} kg · goal ${profile.goalWeight} kg`}
+              theme={c}
+              isDark={isDark}
+              onPress={() => goStack('LogWeight')}
+            />
+            <SettingsRow
+              icon={Dumbbell}
+              iconBg={`${colors.exercise}22`}
+              iconColor={colors.exercise}
+              title="Log exercise"
+              subtitle="Walk, run, strength & more"
+              theme={c}
+              isDark={isDark}
+              onPress={() => goStack('LogExercise')}
+            />
+            <SettingsRow
+              icon={Flame}
+              iconBg={`${colors.carbs}22`}
+              iconColor={colors.carbs}
+              title="Today's intake"
+              subtitle={`${totals.calories} kcal logged · ${Math.max(0, profile.calories - totals.calories)} left`}
+              theme={c}
+              isDark={isDark}
+              onPress={() => goTab('Diary')}
+            />
+            <SettingsRow
+              icon={ChartLine}
+              iconBg={colors.primarySoft}
+              title="Weekly report"
+              subtitle="7-day calories, weight & activity"
+              theme={c}
+              isDark={isDark}
+              onPress={() => goStack('WeeklyReport')}
+            />
+          </>
+        );
+
+      case 'prefs':
+        return (
+          <>
+            <SettingsRow
+              icon={Moon}
+              iconBg={isDark ? '#1C1C1E' : colors.primarySoft}
+              title="Dark mode"
+              subtitle={isDark ? 'On — dark theme active' : 'Off — light theme active'}
+              theme={c}
+              isDark={isDark}
+              onPress={toggleTheme}
+              right={<ThemeSwitch value={isDark} isDark={isDark} colors={colors} />}
+            />
+            <BrandPicker
+              brand={brand}
+              brandOptions={brandOptions}
+              brandHint={brandHint}
+              setBrand={setBrand}
+              theme={c}
+              isDark={isDark}
+              colors={colors}
+            />
+            <SettingsRow
+              icon={Bell}
+              iconBg={`${colors.protein}22`}
+              iconColor={colors.protein}
+              title="Reminders"
+              subtitle="Meal & water nudges"
+              theme={c}
+              isDark={isDark}
+              onPress={() => goStack('Reminders')}
+            />
+            <SettingsRow
+              icon={Sparkles}
+              iconBg={`${colors.aiPurple}22`}
+              iconColor={colors.aiPurple}
+              title="AI meal scan"
+              subtitle="Camera AI placeholder"
+              theme={c}
+              isDark={isDark}
+              onPress={() => goStack('ScanFood', { meal: 'lunch' })}
+            />
+            <SettingsRow
+              icon={Mic}
+              iconBg={`${colors.aiPurple}22`}
+              iconColor={colors.aiPurple}
+              title="Voice log"
+              subtitle="Speak a meal — UI ready"
+              theme={c}
+              isDark={isDark}
+              onPress={() => goStack('VoiceLog', { meal: 'snacks' })}
+            />
+            <SettingsRow
+              icon={ScanLine}
+              iconBg={colors.primarySoft}
+              title="Scan meal"
+              subtitle="Same as AI scan entry"
+              theme={c}
+              isDark={isDark}
+              onPress={() => goStack('ScanFood', { meal: 'lunch' })}
+            />
+          </>
+        );
+
+      case 'account':
+        return (
+          <>
+            <SettingsRow
+              icon={User}
+              iconBg={colors.primarySoft}
+              title={user?.email || 'Signed in'}
+              subtitle={[user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'Local demo account'}
+              theme={c}
+              isDark={isDark}
+              onPress={() => goStack('ProfileEdit')}
+            />
+            <SettingsRow
+              icon={LogOut}
+              iconBg={isDark ? '#1C1C1E' : c.chip}
+              iconColor={colors.danger}
+              title="Sign out"
+              subtitle="Return to welcome screen"
+              theme={c}
+              isDark={isDark}
+              onPress={logOut}
+            />
+          </>
+        );
+
+      case 'about':
+        return (
+          <>
+            <SettingsRow
+              icon={Shield}
+              iconBg={isDark ? '#1C1C1E' : c.chip}
+              title="Privacy"
+              subtitle="Local data only on this device"
+              theme={c}
+              isDark={isDark}
+              onPress={() => goStack('PrivacyPolicy')}
+            />
+            <SettingsRow
+              icon={Info}
+              iconBg={isDark ? '#1C1C1E' : c.chip}
+              title="About"
+              subtitle={`${APP_FULL_NAME} · Expo 54 UI template`}
+              theme={c}
+              isDark={isDark}
+              onPress={() => goStack('AboutUs')}
+            />
+            <View style={[styles.aboutNote, { backgroundColor: isDark ? '#1C1C1E' : colors.primarySoft, borderColor: c.border }]}>
+              <Zap size={16} color={colors.primary} />
+              <Text style={[styles.aboutNoteText, { color: c.muted, fontFamily: snPro('500') }]}>
+                Version 1.0.0 · UI preview build
+              </Text>
+            </View>
+          </>
+        );
+
+      case 'testing':
+        return (
+          <SettingsRow
+            icon={RotateCcw}
+            iconBg={`${colors.danger}18`}
+            iconColor={colors.danger}
+            title="Reset profile (testing)"
+            subtitle="Fresh start → Get started onboarding"
+            theme={c}
+            isDark={isDark}
+            onPress={resetToGetStarted}
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <ScreenShell>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={[styles.kicker, { color: colors.primary, fontFamily: snPro('800') }]}>SETTINGS</Text>
         <Text style={[styles.title, { color: c.text }]}>More</Text>
         <Text style={[styles.sub, { color: c.muted }]}>
-          Profile, goals, theme, and app info. All local UI — no account API yet.
+          Tap a section to open settings. Clean menus, premium feel.
         </Text>
 
         <Pressable
           onPress={() => goStack('ProfileEdit')}
-          style={[styles.profileCard, cardShadow, { borderColor: isDark ? c.border : 'rgba(0,112,224,0.14)' }]}
+          style={[styles.profileCard, cardShadow, { borderColor: isDark ? c.border : primaryRgba(0.14) }]}
         >
           <LinearGradient
-            colors={isDark ? ['#161616', '#121212'] : ['#FFFFFF', '#F0F7FF']}
+            colors={isDark ? ['#161616', '#121212'] : ['#FFFFFF', colors.primarySoft]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.profileInner}
           >
             <View style={styles.profileTop}>
-              <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-                <Text style={[styles.avatarText, { fontFamily: snPro('800') }]}>{profile.name.slice(0, 1)}</Text>
-              </View>
+              <AvatarInitial name={profile.name} size={52} backgroundColor={colors.primary} style={{ marginRight: 12 }} />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.name, { color: c.text, fontFamily: snPro('800') }]}>{profile.name}</Text>
                 <Text style={[styles.meta, { color: c.muted, fontFamily: snPro('500') }]}>
@@ -156,209 +459,129 @@ export default function MoreScreen({ navigation }) {
           </LinearGradient>
         </Pressable>
 
-        <View style={[styles.premiumCard, { backgroundColor: isDark ? '#1A2744' : colors.primarySoft, borderColor: isDark ? '#2A3A5C' : 'rgba(0,112,224,0.18)' }]}>
-          <View style={[styles.premiumIcon, { backgroundColor: isDark ? '#243B66' : '#FFFFFF' }]}>
+        <View
+          style={[
+            styles.premiumCard,
+            {
+              backgroundColor: isDark ? primaryRgba(0.18) : colors.primarySoft,
+              borderColor: isDark ? primaryRgba(0.35) : primaryRgba(0.18),
+            },
+          ]}
+        >
+          <View style={[styles.premiumIcon, { backgroundColor: isDark ? primaryRgba(0.28) : '#FFFFFF' }]}>
             <Crown size={18} color={colors.primary} />
           </View>
           <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={[styles.premiumTitle, { color: c.text, fontFamily: snPro('700') }]}>Healthline Plus</Text>
+            <Text style={[styles.premiumTitle, { color: c.text, fontFamily: snPro('700') }]}>{APP_NAME} Plus</Text>
             <Text style={[styles.premiumSub, { color: c.muted }]}>Advanced insights & meal plans — coming soon</Text>
           </View>
           <ChevronRight size={18} color={colors.primary} />
         </View>
 
-        <SectionLabel label="Plan & coach" theme={c} />
-        <View style={styles.linkGrid}>
-          <QuickLink icon={CalendarDays} label="Meal plan" color={colors.primary} theme={c} isDark={isDark} onPress={() => goStack('MealPlan')} />
-          <QuickLink icon={ShoppingBag} label="Grocery" color={colors.accent} theme={c} isDark={isDark} onPress={() => goStack('GroceryList')} />
-          <QuickLink icon={MessageCircle} label="AI coach" color={colors.aiPurple} theme={c} isDark={isDark} onPress={() => goStack('Coach')} />
-          <QuickLink icon={GraduationCap} label="Programs" color={colors.exercise} theme={c} isDark={isDark} onPress={() => goStack('Programs')} />
-        </View>
-
-        <SectionLabel label="Quick links" theme={c} />
-        <View style={styles.linkGrid}>
-          <QuickLink icon={Compass} label="Recipes" color={colors.primary} theme={c} isDark={isDark} onPress={() => goTab('Discover')} />
-          <QuickLink icon={Heart} label="Favorites" color={colors.danger} theme={c} isDark={isDark} onPress={() => goStack('Favorites')} />
-          <QuickLink icon={Barcode} label="Barcode" color={colors.primary} theme={c} isDark={isDark} onPress={() => goStack('BarcodeScan', { meal: 'snacks' })} />
-          <QuickLink icon={ChartLine} label="Report" color={colors.exercise} theme={c} isDark={isDark} onPress={() => goStack('WeeklyReport')} />
-        </View>
-
-        <SectionLabel label="Goals & health" theme={c} />
-        <SettingsRow
-          icon={HeartPulse}
-          iconBg={`${colors.aiPurple}22`}
-          iconColor={colors.aiPurple}
-          title="Health tracks"
-          subtitle="PCOS, thyroid, blood sugar, blood pressure"
-          theme={c}
-          isDark={isDark}
-          onPress={() => goStack('HealthTracks')}
-        />
-        <SettingsRow
-          icon={User}
-          iconBg={colors.primarySoft}
-          title="Edit profile"
-          subtitle={`${profile.name} · ${GOAL_LABEL[goal]}`}
-          theme={c}
-          isDark={isDark}
-          onPress={() => goStack('ProfileEdit')}
-        />
-        <SettingsRow
-          icon={Target}
-          iconBg={colors.primarySoft}
-          title="Nutrition goals"
-          subtitle={`${profile.protein}g protein · ${profile.carbs}g carbs · ${profile.fat}g fat`}
-          theme={c}
-          isDark={isDark}
-          onPress={() => goStack('EditGoals')}
-        />
-        <SettingsRow
-          icon={Scale}
-          iconBg={`${colors.accent}22`}
-          iconColor={colors.accent}
-          title="Log weight"
-          subtitle={`Current ${profile.weight} kg · goal ${profile.goalWeight} kg`}
-          theme={c}
-          isDark={isDark}
-          onPress={() => goStack('LogWeight')}
-        />
-        <SettingsRow
-          icon={Dumbbell}
-          iconBg={`${colors.exercise}22`}
-          iconColor={colors.exercise}
-          title="Log exercise"
-          subtitle="Walk, run, strength & more"
-          theme={c}
-          isDark={isDark}
-          onPress={() => goStack('LogExercise')}
-        />
-        <SettingsRow
-          icon={Flame}
-          iconBg={`${colors.carbs}22`}
-          iconColor={colors.carbs}
-          title="Today's intake"
-          subtitle={`${totals.calories} kcal logged · ${Math.max(0, profile.calories - totals.calories)} left`}
-          theme={c}
-          isDark={isDark}
-          onPress={() => goTab('Diary')}
-        />
-        <SettingsRow
-          icon={ChartLine}
-          iconBg={colors.primarySoft}
-          title="Weekly report"
-          subtitle="7-day calories, weight & activity"
-          theme={c}
-          isDark={isDark}
-          onPress={() => goStack('WeeklyReport')}
-        />
-
-        <SectionLabel label="Preferences" theme={c} />
-        <SettingsRow
-          icon={Moon}
-          iconBg={isDark ? '#1C1C1E' : colors.primarySoft}
-          title="Dark mode"
-          subtitle={isDark ? 'On — dark theme active' : 'Off — light theme active'}
-          theme={c}
-          isDark={isDark}
-          onPress={toggleTheme}
-          right={<ThemeSwitch value={isDark} isDark={isDark} />}
-        />
-        <SettingsRow
-          icon={Bell}
-          iconBg={`${colors.protein}22`}
-          iconColor={colors.protein}
-          title="Reminders"
-          subtitle="Meal & water nudges"
-          theme={c}
-          isDark={isDark}
-          onPress={() => goStack('Reminders')}
-        />
-        <SettingsRow
-          icon={Sparkles}
-          iconBg={`${colors.aiPurple}22`}
-          iconColor={colors.aiPurple}
-          title="AI meal scan"
-          subtitle="Camera AI placeholder"
-          theme={c}
-          isDark={isDark}
-          onPress={() => goStack('ScanFood', { meal: 'lunch' })}
-        />
-        <SettingsRow
-          icon={Mic}
-          iconBg={`${colors.aiPurple}22`}
-          iconColor={colors.aiPurple}
-          title="Voice log"
-          subtitle="Speak a meal — UI ready"
-          theme={c}
-          isDark={isDark}
-          onPress={() => goStack('VoiceLog', { meal: 'snacks' })}
-        />
-        <SettingsRow
-          icon={ScanLine}
-          iconBg={colors.primarySoft}
-          title="Scan meal"
-          subtitle="Same as AI scan entry"
-          theme={c}
-          isDark={isDark}
-          onPress={() => goStack('ScanFood', { meal: 'lunch' })}
-        />
-
-        <SectionLabel label="Account" theme={c} />
-        <SettingsRow
-          icon={User}
-          iconBg={colors.primarySoft}
-          title={user?.email || 'Signed in'}
-          subtitle={[user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'Local demo account'}
-          theme={c}
-          isDark={isDark}
-          onPress={() => goStack('ProfileEdit')}
-        />
-        <SettingsRow
-          icon={LogOut}
-          iconBg={isDark ? '#1C1C1E' : c.chip}
-          iconColor={colors.danger}
-          title="Sign out"
-          subtitle="Return to welcome screen"
-          theme={c}
-          isDark={isDark}
-          onPress={logOut}
-        />
-
-        <SectionLabel label="About" theme={c} />
-        <SettingsRow
-          icon={Shield}
-          iconBg={isDark ? '#1C1C1E' : c.chip}
-          title="Privacy"
-          subtitle="Local data only on this device"
-          theme={c}
-          isDark={isDark}
-        />
-        <SettingsRow
-          icon={Info}
-          iconBg={isDark ? '#1C1C1E' : c.chip}
-          title="About"
-          subtitle="Healthline Nutrition · Expo 54 UI template"
-          theme={c}
-          isDark={isDark}
-        />
-
-        <SectionLabel label="Testing" theme={c} />
-        <SettingsRow
-          icon={RotateCcw}
-          iconBg={`${colors.danger}18`}
-          iconColor={colors.danger}
-          title="Reset profile (testing)"
-          subtitle="Fresh start → Get started onboarding"
-          theme={c}
-          isDark={isDark}
-          onPress={resetToGetStarted}
-        />
+        <SectionLabel label="Menu" theme={c} />
+        {MENU_SECTIONS.map((section) => (
+          <MenuCategoryRow
+            key={section.id}
+            section={section}
+            theme={c}
+            isDark={isDark}
+            colors={colors}
+            onPress={() => setOpenMenu(section.id)}
+          />
+        ))}
 
         <Text style={[styles.footer, { color: c.muted, fontFamily: snPro('500') }]}>
           Version 1.0.0 · UI preview build
         </Text>
       </ScrollView>
+
+      <SettingsSheetModal
+        visible={Boolean(openMenu)}
+        title={activeSection?.title || ''}
+        subtitle={activeSection?.subtitle}
+        onClose={() => setOpenMenu(null)}
+      >
+        {renderMenuContent()}
+      </SettingsSheetModal>
     </ScreenShell>
+  );
+}
+
+function MenuCategoryRow({ section, theme, isDark, colors, onPress }) {
+  const Icon = section.icon;
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.menuRow,
+        cardShadow,
+        {
+          backgroundColor: theme.cardBg,
+          borderColor: theme.border,
+          opacity: pressed ? 0.92 : 1,
+        },
+      ]}
+    >
+      <View style={[styles.menuIcon, { backgroundColor: isDark ? '#1C1C1E' : colors.primarySoft }]}>
+        <Icon size={20} color={colors.primary} />
+      </View>
+      <View style={styles.menuBody}>
+        <Text style={[styles.menuTitle, { color: theme.text, fontFamily: snPro('700') }]}>{section.title}</Text>
+        <Text style={[styles.menuSub, { color: theme.muted, fontFamily: snPro('400') }]}>{section.subtitle}</Text>
+      </View>
+      <ChevronRight size={18} color={theme.muted} />
+    </Pressable>
+  );
+}
+
+function BrandPicker({ brand, brandOptions, brandHint, setBrand, theme, isDark, colors }) {
+  return (
+    <View style={[styles.brandCard, cardShadow, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+      <View style={styles.brandHeader}>
+        <View style={[styles.iconWrap, { backgroundColor: isDark ? '#1C1C1E' : colors.primarySoft }]}>
+          <Palette size={18} color={colors.primary} />
+        </View>
+        <View style={styles.rowBody}>
+          <Text style={[styles.rowTitle, { color: theme.text, fontFamily: snPro('700') }]}>Color theme</Text>
+          <Text style={[styles.rowSub, { color: theme.muted, fontFamily: snPro('400') }]}>
+            {brandHint} · tap to switch
+          </Text>
+        </View>
+      </View>
+      <View style={styles.brandRow}>
+        {brandOptions.map((opt) => {
+          const active = brand === opt.id;
+          const swatch = opt.id === 'green' ? '#2ECC71' : '#0070E0';
+          return (
+            <Pressable
+              key={opt.id}
+              onPress={() => setBrand(opt.id)}
+              style={({ pressed }) => [
+                styles.brandChip,
+                {
+                  borderColor: active ? swatch : theme.border,
+                  backgroundColor: active ? `${swatch}18` : isDark ? '#1C1C1E' : theme.chip,
+                  opacity: pressed ? 0.88 : 1,
+                },
+              ]}
+            >
+              <View style={[styles.brandDot, { backgroundColor: swatch }]} />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.brandChipTitle, { color: theme.text, fontFamily: snPro('700') }]}>
+                  {opt.label}
+                </Text>
+                <Text style={[styles.brandChipHint, { color: theme.muted, fontFamily: snPro('400') }]}>
+                  {opt.hint}
+                </Text>
+              </View>
+              {active ? (
+                <Text style={{ color: swatch, fontSize: 12, fontFamily: snPro('700') }}>Active</Text>
+              ) : null}
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
   );
 }
 
@@ -369,6 +592,7 @@ function SectionLabel({ label, theme }) {
 }
 
 function MiniStat({ icon: Icon, label, value, theme, isDark, accent }) {
+  const { colors } = useTheme();
   const tint = accent || colors.primary;
   return (
     <View style={[styles.miniStat, { backgroundColor: isDark ? '#1C1C1E' : 'rgba(255,255,255,0.72)', borderColor: theme.border }]}>
@@ -403,7 +627,7 @@ function QuickLink({ icon: Icon, label, color, theme, isDark, onPress }) {
   );
 }
 
-function ThemeSwitch({ value, isDark }) {
+function ThemeSwitch({ value, isDark, colors }) {
   return (
     <Switch
       value={value}
@@ -416,6 +640,7 @@ function ThemeSwitch({ value, isDark }) {
 }
 
 function SettingsRow({ icon: Icon, iconBg, iconColor, title, subtitle, theme, isDark, right, onPress }) {
+  const { colors } = useTheme();
   const content = (
     <>
       <View style={[styles.iconWrap, { backgroundColor: isDark ? '#1C1C1E' : iconBg || colors.primarySoft }]}>
@@ -468,15 +693,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 14,
   },
-  avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 99,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  avatarText: { color: '#FFFFFF', fontSize: 22 },
   name: { fontSize: 18 },
   meta: { fontSize: 13, marginTop: 3 },
   editHint: { fontSize: 12, marginTop: 4 },
@@ -523,11 +739,30 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginTop: 4,
   },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 10,
+  },
+  menuIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  menuBody: { flex: 1, marginRight: 8 },
+  menuTitle: { fontSize: 16 },
+  menuSub: { fontSize: 12, marginTop: 3, lineHeight: 17 },
   linkGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginHorizontal: -4,
-    marginBottom: 12,
+    marginBottom: 4,
   },
   quickWrap: {
     width: '50%',
@@ -549,6 +784,30 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   quickLbl: { fontSize: 13 },
+  brandCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 10,
+  },
+  brandHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  brandRow: { gap: 8 },
+  brandChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1.5,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+  },
+  brandDot: { width: 18, height: 18, borderRadius: 99 },
+  brandChipTitle: { fontSize: 14 },
+  brandChipHint: { fontSize: 12, marginTop: 2 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -568,6 +827,16 @@ const styles = StyleSheet.create({
   rowBody: { flex: 1, marginRight: 8 },
   rowTitle: { fontSize: 15 },
   rowSub: { fontSize: 12, marginTop: 3, lineHeight: 17 },
+  aboutNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 14,
+    marginTop: 4,
+  },
+  aboutNoteText: { fontSize: 13, flex: 1 },
   footer: {
     fontSize: 12,
     textAlign: 'center',
